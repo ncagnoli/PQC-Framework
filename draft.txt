@@ -1,0 +1,11 @@
+
+#Server Side
+
+for x in $(seq 1000); do
+sudo perf stat -e cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations -o "server_perf_${x}.txt" -- /usr/sbin/sshd -D -e; 
+done
+
+#Client Side
+
+for x in $(seq 1000); do
+sudo perf stat -e cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations -o "client_perf_${x}.txt" -- ssh -i id_rsa -o BatchMode=yes test1@localhost exit; done
