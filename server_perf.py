@@ -1,3 +1,11 @@
+#!/usr/bin/python3
+
+
+#
+# SERVER MONITOR
+#
+
+
 import subprocess
 import csv
 import sys
@@ -8,9 +16,9 @@ def is_port_in_use(port=22):
     result = subprocess.run(["ss", "-tln"], capture_output=True, text=True)
     return f":{port} " in result.stdout
 
-def run_perf_ssh_server(iterations=1000, output_file="perf_server.csv", sshd_config="/etc/ssh/sshd_config"):
+def run_perf_ssh_server(iterations=100, sshd_config="/etc/ssh/sshd_config"):
     if is_port_in_use():
-        print("Erro: A porta 22 já está em uso. Finalizando script.", file=sys.stderr)
+        print("Erro: Porta 22 em uso.", file=sys.stderr)
         sys.exit(1)
 
     perf_command = [
@@ -20,6 +28,8 @@ def run_perf_ssh_server(iterations=1000, output_file="perf_server.csv", sshd_con
     sshd_command = [
         "/usr/sbin/sshd", "-D", "-e", "-f", sshd_config
     ]
+
+    output_file = sshd_config + ".csv"
 
     with open(output_file, "w", newline='') as f:
         writer = csv.writer(f)
@@ -61,5 +71,5 @@ def parse_perf_output(output):
     return metrics
 
 if __name__ == "__main__":
-    config_file = sys.argv[1] if len(sys.argv) > 1 else "/etc/ssh/sshd_config"
+    config_file = sys.argv[1]
     run_perf_ssh_server(sshd_config=config_file)
