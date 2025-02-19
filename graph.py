@@ -1,6 +1,6 @@
 from bokeh.plotting import figure, show
 from bokeh.io import output_file
-from bokeh.models import DataRange1d,NumeralTickFormatter
+from bokeh.models import DataRange1d,NumeralTickFormatter,LabelSet
 import pandas as pd
 
 # Carregar os dados
@@ -18,6 +18,7 @@ p = figure( title="CPU Cycles por Iteração",
 #Linhas
 p.line(df_server["iteration"], df_server["cycles"], legend_label="Server CPU Cycles", line_color="indigo", line_width=3, line_dash="dotdash")
 p.line(df_client["iteration"], df_client["cycles"], legend_label="Client CPU Cycles", line_color="coral", line_width=3 , line_dash="dashed")
+
 #Escala
 p.y_range = DataRange1d()
 
