@@ -1,4 +1,4 @@
-# README - Monitoramento de Desempenho com SSH e Perf
+# Monitoramento de Desempenho com SSH e Perf
 
 ## Visão Geral
 Este projeto contém dois scripts para medir o desempenho da execução de conexões SSH utilizando a ferramenta `perf`. Os scripts testam o impacto de diferentes algoritmos de troca de chave (`KEX`) e armazenam os resultados para análise posterior.
