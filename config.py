@@ -3,10 +3,17 @@
 DEBUG_MODE = True
 # The number of times the client-server test iteration should run.
 ITERATIONS = 1500
+# The number of times to loop the server. Should be >= ITERATIONS.
+LOOP_COUNT = 1500
 # Directory where the resulting CSV files will be stored.
 RESULTS_DIR = "Results"
-# The file used by the client to signal the server to stop.
-SIGNAL_FILE = "/tmp/stop_server_perf"
+# The port used for signaling between client and server.
+SIGNAL_PORT = 12345
+# The perf events to monitor.
+PERF_EVENTS = [
+    "cycles", "instructions", "cache-misses", "branch-misses",
+    "page-faults", "context-switches", "cpu-migrations"
+]
 
 
 # --- Server Settings (`server_perf.py`) ---
@@ -20,14 +27,12 @@ PORT_TO_CHECK = 2222
 
 
 # --- Client Settings (`client_perf.py`) ---
-# The command to be executed on the remote server, which also acts as the signal.
-REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
 # The client binary that will be measured by perf.
 CLIENT_COMMAND = "ssh"
 # Arguments for the client binary.
 CLIENT_ARGS = [
     "-p", str(PORT_TO_CHECK), "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", REMOTE_COMMAND
+    "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", "echo", "hello"
 ]
 # A friendly name for the test, used in the output filename.
 TEST_NAME = "mlkem768x25519-sha256"
