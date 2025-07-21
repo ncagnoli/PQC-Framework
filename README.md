@@ -57,6 +57,7 @@ All configuration has been centralized in the `config.py` file. Open this file t
     ```
 
 2.  **Configure `config.py`**: Adjust the settings in `config.py` for your specific test case (e.g., server binary, arguments, SSH keys). Ensure you have passwordless SSH access to the server from the client machine.
+tor the Output**: You will see progress printed in both terminals as they synchronize and interact.
 
 3.  **Start the Server Loop**: In a terminal on the server machine, run the wrapper script. It will wait for the client to start the process.
     ```bash
