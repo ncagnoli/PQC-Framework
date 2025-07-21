@@ -10,103 +10,123 @@ import signal
 import os
 import datetime
 import socket
-
-# ---------------- CONFIGURAÇÕES ---------------- #
-DEBUG_MODE = True  # Defina como True para ver os comandos e saídas detalhadas
-SSH_USER = "test1"
-SSH_HOST = "localhost"
-SSH_PORT = 22
-SSH_COMMAND = "kill_sshd"
-SSH_KEX = "mlkem768x25519-sha256"
-SSH_KEY = "id_rsa"
-ITERATIONS = 100  # Número máximo de tentativas bem-sucedidas
-RESULTS_DIR = "Results"  # Diretório onde os resultados serão armazenados
-# ---------------------------------------------- #
+import time
+import config
+import parsing_util
 
 def debug(msg):
-    if DEBUG_MODE:
+    """Prints a debug message if DEBUG_MODE is True."""
+    if config.DEBUG_MODE:
         print(f"[DEBUG] {msg}")
 
 def setup_results_dir():
-    os.makedirs(RESULTS_DIR, exist_ok=True)
+    """Ensures the results directory exists."""
+    os.makedirs(config.RESULTS_DIR, exist_ok=True)
 
-def generate_output_filename():
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    hostname = socket.gethostname()
-    return os.path.join(RESULTS_DIR, f"{hostname}-{timestamp}-client-{SSH_KEX}-{SSH_KEY}.csv")
-
-def execute_perf(command):
-    debug(f"Executando comando: {' '.join(command)}")
-    result = subprocess.run(command, stderr=subprocess.PIPE, text=True, timeout=5)
-    debug(f"Saída de erro do perf:\n{result.stderr}")
-    return result.stderr, result.returncode
-
-def parse_perf_output(output):
-    metrics = {
-        "cycles": 0, "instructions": 0, "cache-misses": 0,
-        "branch-misses": 0, "page-faults": 0, "context-switches": 0, "cpu-migrations": 0
-    }
-    for line in output.split('\n'):
-        for key in metrics.keys():
-            if key in line:
-                value = line.split()[0].replace(',', '').replace('.', '')
-                try:
-                    metrics[key] = int(value)
-                except ValueError:
-                    metrics[key] = 0
-    return metrics
+def execute_perf_on_client(command):
+    """Executes a command under 'perf stat' and returns the output and return code."""
+    debug(f"Running command: {' '.join(command)}")
+    try:
+        result = subprocess.run(command, stderr=subprocess.PIPE, text=True, timeout=10)
+        debug(f"Perf stderr output:\n{result.stderr}")
+        return result.stderr, result.returncode
+    except subprocess.TimeoutExpired:
+        debug("Command timed out.")
+        return "Timeout", -1
 
 def cleanup_and_exit(signum, frame):
-    print("\n[INFO] Interrupção detectada! Finalizando script com segurança...")
+    """Handles script interruption (e.g., CTRL+C) for a clean exit."""
+    print("\n[INFO] Interruption detected! Exiting script safely...")
     sys.exit(0)
 
-signal.signal(signal.SIGINT, cleanup_and_exit)
-signal.signal(signal.SIGTERM, cleanup_and_exit)
+def signal_server(action):
+    """Creates or removes the signal file on the server via SSH."""
+    if action not in ["create", "remove"]:
+        raise ValueError("Action must be 'create' or 'remove'")
 
-def run_perf_ssh_client():
+    command_str = f"touch {config.SIGNAL_FILE}" if action == "create" else f"rm -f {config.SIGNAL_FILE}"
+
+    ssh_command = [
+        "ssh", "-p", str(config.SIGNAL_SSH_PORT), "-i", config.SIGNAL_SSH_KEY,
+        "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
+        f"{config.SIGNAL_SSH_USER}@{config.SIGNAL_SSH_HOST}", command_str
+    ]
+
+    debug(f"Signaling server ('{action}'): {' '.join(ssh_command)}")
+    try:
+        result = subprocess.run(ssh_command, timeout=10, check=True, capture_output=True, text=True)
+        debug(f"Signaling successful. Server output: {result.stdout}")
+        return True
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
+        print(f"Error signaling server ('{action}'): {e}", file=sys.stderr)
+        if hasattr(e, 'stderr'):
+            print(f"Server stderr: {e.stderr}", file=sys.stderr)
+        return False
+
+def create_session_id():
+    """Generates a unique session ID and writes it to the session file."""
+    # Format: <config_name>-<date>
+    date_str = datetime.datetime.now().strftime("%Y%m%d")
+    session_id = f"{config.SERVER_CONFIG_FILE}-{date_str}"
+
+    with open(config.SESSION_ID_FILE, "w") as f:
+        f.write(session_id)
+
+    debug(f"Created session ID: {session_id}")
+    return session_id
+
+def run_client_benchmark():
+    """Main function to run the client-side performance benchmark."""
     setup_results_dir()
-    output_file = generate_output_filename()
+    session_id = create_session_id()
+    output_filename = os.path.join(config.RESULTS_DIR, f"client-results-{session_id}.csv")
     
-    perf_command = [
+    # Write header only if the file doesn't exist
+    if not os.path.exists(output_filename):
+        with open(output_filename, "w", newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(parsing_util.CSV_HEADERS)
+    else:
+        # If file exists, it's from a resumed run, clear it to start fresh
+        debug(f"Output file {output_filename} already exists. Clearing for a new run.")
+        os.remove(output_filename)
+        with open(output_filename, "w", newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(parsing_util.CSV_HEADERS)
+
+
+    perf_command_base = [
         "perf", "stat", "-e",
         "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
     ]
-    ssh_command_list = [
-        "ssh", "-p", str(SSH_PORT), "-i", str(SSH_KEY), "-o", "BatchMode=yes", "-o", "ForwardX11=no", 
-        "-o", f"KexAlgorithms={SSH_KEX}", f"{SSH_USER}@{SSH_HOST}", SSH_COMMAND
-    ]
-    command = perf_command + ["--"] + ssh_command_list
+    client_connection_command = [config.CLIENT_COMMAND] + config.CLIENT_ARGS
+    full_perf_command = perf_command_base + ["--"] + client_connection_command
 
-    with open(output_file, "w", newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            "iteration", "cycles", "instructions", "cache-misses", "branch-misses",
-            "page-faults", "context-switches", "cpu-migrations"
-        ])
+    for i in range(config.ITERATIONS):
+        print(f"\n--- Starting Iteration {i} ---")
+
+        # A short pause to allow the server to restart from the previous iteration.
+        time.sleep(2)
+
+        print("Running perf on the client to connect and signal the server...")
+        perf_output, return_code = execute_perf_on_client(full_perf_command)
+
+        if "Timeout" in perf_output:
+             print(f"Client measurement timed out. Retrying...")
+             continue
+
+        print("Client measurement captured!")
+        metrics = parsing_util.parse_perf_output(perf_output, i)
         
-        iteration = 0
-        while iteration < ITERATIONS:
-            print(f"\nTentando conexão SSH - Iteração {iteration}")
-            try:
-                perf_output, return_code = execute_perf(command)
-                print(perf_output)
-                print(return_code)
-                if return_code == 0:
-                    print(f"Conexão bem-sucedida! Iteração {iteration} registrada.")
-                    metrics = parse_perf_output(perf_output)
-                    metrics["iteration"] = iteration
-                    writer.writerow([
-                        metrics["iteration"], metrics["cycles"], metrics["instructions"], metrics["cache-misses"],
-                        metrics["branch-misses"], metrics["page-faults"], metrics["context-switches"], metrics["cpu-migrations"]
-                    ])
-                    iteration += 1  # Só incrementa se a conexão foi bem-sucedida
-                else:
-                    print("========== Falha na conexão. Tentando novamente ==========")
-            except subprocess.TimeoutExpired:
-                print("========== Tempo limite atingido. Tentando novamente ==========")
-            except Exception as e:
-                print(f"====== Erro inesperado: {e}. Tentando novamente ===== ")
+        with open(output_filename, "a", newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=parsing_util.CSV_HEADERS)
+            writer.writerow(metrics)
+
+        print(f"--- Finished Iteration {i} ---")
 
 if __name__ == "__main__":
-    print(f"Iniciando testes do cliente. Resultados serão salvos em: {generate_output_filename()}")
-    run_perf_ssh_client()
+    # Set up signal handlers for graceful exit
+    signal.signal(signal.SIGINT, cleanup_and_exit)
+    signal.signal(signal.SIGTERM, cleanup_and_exit)
+
+    run_client_benchmark()

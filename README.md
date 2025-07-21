@@ -1,59 +1,73 @@
-# Monitoramento de Desempenho com SSH e Perf
+# Perf Benchmark Toolkit
 
-## Visão Geral
-Este projeto contém dois scripts para medir o desempenho da execução de conexões SSH utilizando a ferramenta `perf`. Os scripts testam o impacto de diferentes algoritmos de troca de chave (`KEX`) e armazenam os resultados para análise posterior.
+This toolkit provides a pair of Python scripts (`server_perf.py` and `client_perf.py`) for running iterative performance benchmarks on a server process using `perf stat`. It uses a client-server model where the client orchestrates the start and stop of measurements on both itself and the server, ensuring that data is captured for each transaction.
 
-- **`server_perf.py`**: Executa um servidor SSH manualmente e mede o desempenho do lado do servidor.
-- **`client_perf.py`**: Conecta-se ao servidor SSH repetidamente e mede o desempenho do lado do cliente.
+## Features
 
-Os resultados são salvos em arquivos CSV dentro da pasta `Results/`.
+- **Iterative Benchmarking**: Run a client-server interaction a specified number of times and record performance metrics for each run.
+- **Synchronized Measurements**: The client signals the server to stop its `perf` recording after each client measurement is complete.
+- **Generic by Design**: While configured for SSH by default, the scripts can be easily adapted to benchmark other server binaries and client interactions.
+- **CSV Output**: Saves performance data (cycles, instructions, cache misses, etc.) in separate, timestamped CSV files for the client and server.
 
----
-## Como Funciona
-### `server_perf.py`
-1. **Verifica se a porta 22 está em uso.**
-2. **Inicia um servidor SSH manualmente**, sem depender do serviço do sistema.
-3. **Executa o `perf`** para capturar métricas de desempenho durante a execução do servidor.
-4. **Salva os resultados** no arquivo CSV.
+## How It Works
 
-### `client_perf.py`
-1. **Executa conexões SSH repetidas** usando um algoritmo de troca de chaves (`KEX`) específico.
-2. **Utiliza `perf`** para coletar métricas do lado do cliente.
-3. **Garante conexões não interativas** com `BatchMode=yes`.
-4. **Salva os resultados** no arquivo CSV.
+The system is composed of three main components:
 
----
-## Como Executar
-### Servidor
-```bash
-python3 server_perf.py
-```
+1.  **`server_perf.py`**: This script wraps a target server binary (e.g., `/usr/sbin/sshd`) with the `perf stat` command. It starts the server and then waits. It continuously checks for the existence of a "signal file" (`/tmp/stop_server_perf`). When this file is detected, the script sends a `SIGINT` to the `perf` process, causing it to terminate gracefully, print its results, and exit. The script then parses the `perf` output and saves it to a CSV file.
 
-### Cliente
-```bash
-python3 client_perf.py
-```
+2.  **`run_server_loop.sh`**: Since `server_perf.py` is designed to exit after each measurement, this shell script runs it in a loop. When the server script exits, the loop waits a moment and then restarts it, making it ready for the next client connection.
 
----
-## Estrutura de Arquivos
-```
-/
-├── server_perf.py  # Script para monitoramento do servidor SSH
-├── client_perf.py  # Script para monitoramento do cliente SSH
-├── Results/        # Pasta onde os CSVs são armazenados automaticamente
-└── README.md       # Este arquivo
-```
+3.  **`client_perf.py`**: This is the orchestrator. For each iteration, it performs the following steps:
+    a. Removes the signal file on the server via SSH to ensure the server is running and ready.
+    b. Waits a few seconds for the server to initialize.
+    c. Runs its own client command (e.g., an `ssh` connection) under `perf stat`.
+    d. Saves its own performance results to a CSV file.
+    e. Creates the signal file on the server via SSH, which tells `server_perf.py` to stop and save its results.
 
----
-## Configuração Rápida
-Cada script possui um **bloco de configuração** onde você pode alterar parâmetros como número de iterações, chaves SSH, algoritmos KEX, etc. Basta editar as variáveis no início do arquivo:
+This cycle repeats for the configured number of iterations.
 
-```python
-# Exemplo de configuração no client_perf.py
-DEBUG_MODE = True  # Exibe os comandos e saídas detalhadas
-SSH_USER = "test1"
-SSH_HOST = "localhost"
-SSH_KEX = "mlkem768x25519-sha256"
-SSH_KEY = "id_rsa"
-ITERATIONS = 100
-```
+## Setup and Configuration
+
+All configuration has been centralized in the `config.py` file. Open this file to adjust all parameters for your benchmark.
+
+### Key Configuration Variables in `config.py`
+
+- **General Settings**:
+  - `ITERATIONS`: The number of benchmark iterations to run.
+  - `DEBUG_MODE`: Set to `True` to see verbose output from the scripts.
+
+- **Server Settings**:
+  - `SERVER_BINARY`: The absolute path to the server executable (e.g., `/usr/sbin/sshd`).
+  - `SERVER_ARGS`: A list of command-line arguments for the server binary.
+  - `PORT_TO_CHECK`: The port the server will use.
+
+- **Client Settings**:
+  - `CLIENT_COMMAND`: The client executable to run (e.g., `ssh`).
+  - `CLIENT_ARGS`: A list of arguments for the client command. By default, this includes the `REMOTE_COMMAND` which signals the server.
+  - `TEST_NAME`: A friendly name for your test, used in the output filename.
+
+- **Signaling**:
+  - `SIGNAL_SSH_*`: SSH connection details (`USER`, `HOST`, `PORT`, `KEY`) used by the client to connect to the server. **This requires passwordless SSH access (e.g., via public key authentication) to be configured for the specified user.**
+
+## How to Run
+
+1.  **Set Script Permissions**: Ensure all scripts are executable:
+    ```bash
+    chmod +x run_server_loop.sh server_perf.py client_perf.py
+    ```
+
+2.  **Configure `config.py`**: Adjust the settings in `config.py` for your specific test case (e.g., server binary, arguments, SSH keys). Ensure you have passwordless SSH access to the server from the client machine.
+
+3.  **Run the Client First**: In a terminal, run the client script. It will create a session ID file and then wait for the server to become available.
+    ```bash
+    ./client_perf.py
+    ```
+
+4.  **Start the Server Loop**: Immediately after starting the client, run the server loop script in a second terminal. It will read the session ID created by the client and start the benchmark cycle.
+    ```bash
+    ./run_server_loop.sh
+    ```
+
+5.  **Monitor the Output**: You will see progress printed in both terminals as they synchronize and interact.
+
+6.  **Collect Results**: Once the client script finishes its iterations, you can stop the server loop with `CTRL+C`. Two CSV files (one for the server, one for the client) containing all iteration data will be in the `Results/` directory.
