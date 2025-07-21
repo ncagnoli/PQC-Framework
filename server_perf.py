@@ -22,10 +22,10 @@ SIGNAL_FILE = "/tmp/stop_server_perf" # File used to signal the server to stop
 # --- Server Command Configuration ---
 # Example for SSHD:
 SERVER_BINARY = "/usr/sbin/sshd"
-SERVER_ARGS = ["-D", "-e", "-p", "22", "-f", "sshd_config_padrao"]
+SERVER_ARGS = ["-D", "-e", "-p", "2222", "-f", "sshd_config_padrao"]
 # The script will try to find the config file path from the arguments (looks for '-f').
 # If not found, the output filename will be 'generic'.
-PORT_TO_CHECK = 22 # Port to check for availability, 'None' to disable.
+PORT_TO_CHECK = 2222 # Port to check for availability, 'None' to disable.
 # ------------------------------------------ #
 
 def debug(msg):
@@ -114,27 +114,23 @@ def run_server_benchmark():
         server_process = subprocess.Popen(full_command, stderr=subprocess.PIPE, text=True)
         debug(f"'perf {os.path.basename(SERVER_BINARY)}' server started with PID: {server_process.pid}")
 
-        # Find the actual server binary process, which is a child of the 'perf' process
+        # Find the master server binary process, which is a child of the 'perf' process
+        master_sshd_process = None
         try:
             perf_process = psutil.Process(server_process.pid)
             # Wait a moment for the child process to spawn
             time.sleep(1)
             children = perf_process.children(recursive=True)
-            sshd_process = next((p for p in children if p.name() in os.path.basename(SERVER_BINARY)), None)
+            master_sshd_process = next((p for p in children if p.name() in os.path.basename(SERVER_BINARY)), None)
 
-            if not sshd_process:
-                raise RuntimeError("Could not find the sshd child process of perf.")
+            if not master_sshd_process:
+                raise RuntimeError("Could not find the master sshd child process of perf.")
 
-            debug(f"Found server binary process with PID: {sshd_process.pid}")
-        except psutil.NoSuchProcess:
-            print("Error: Could not find perf process right after starting it.", file=sys.stderr)
+            debug(f"Found master server process with PID: {master_sshd_process.pid}")
+        except (psutil.NoSuchProcess, RuntimeError) as e:
+            print(f"Error during initial server process discovery: {e}", file=sys.stderr)
             server_process.kill()
             sys.exit(1)
-        except RuntimeError as e:
-            print(f"Error: {e}", file=sys.stderr)
-            server_process.kill()
-            sys.exit(1)
-
 
         # Loop to wait for the signal file
         while not os.path.exists(SIGNAL_FILE):
@@ -148,9 +144,21 @@ def run_server_benchmark():
 
         print("\n[INFO] Signal received to stop the server.")
 
-        # Send SIGKILL (kill -9) directly to the sshd process to ensure it dies
-        debug(f"Sending SIGKILL to server binary process with PID: {sshd_process.pid}")
-        sshd_process.kill()
+        try:
+            # The master sshd process spawns a new child for the active session. We need to find this new child.
+            all_children = master_sshd_process.children(recursive=True)
+            session_process = next((p for p in all_children if p.status() == psutil.STATUS_RUNNING), None)
+
+            if session_process:
+                debug(f"Found active session process with PID: {session_process.pid}. Sending SIGKILL.")
+                session_process.kill()
+            else:
+                # Fallback in case we can't find the session process, kill the master
+                debug("Could not find a specific session process. Sending SIGKILL to master server process.")
+                master_sshd_process.kill()
+
+        except psutil.NoSuchProcess:
+            debug("Master SSHD process already gone. The 'perf' process should exit shortly.")
 
         # Wait for the parent 'perf' process to terminate and capture its output
         server_process.wait(timeout=10)
