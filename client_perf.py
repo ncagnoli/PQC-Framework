@@ -63,14 +63,18 @@ def signal_server(action):
             print(f"Server stderr: {e.stderr}", file=sys.stderr)
         return False
 
-def run_client_benchmark():
-    """Main function to run the client-side performance benchmark."""
+def run_client_benchmark(output_filename):
+    """
+    Main function to run the client-side performance benchmark.
+
+    Args:
+        output_filename (str): The path to the CSV file for logging results.
+    """
     setup_results_dir()
-    output_file = config.CLIENT_OUTPUT_FILE
 
     # Write header only if the file doesn't exist
-    if not os.path.exists(output_file):
-        with open(output_file, "w", newline='') as f:
+    if not os.path.exists(output_filename):
+        with open(output_filename, "w", newline='') as f:
             writer = csv.writer(f)
             writer.writerow(parsing_util.CSV_HEADERS)
 
@@ -97,16 +101,22 @@ def run_client_benchmark():
         print("Client measurement captured!")
         metrics = parsing_util.parse_perf_output(perf_output, i)
         
-        with open(output_file, "a", newline='') as f:
+        with open(output_filename, "a", newline='') as f:
             writer = csv.DictWriter(f, fieldnames=parsing_util.CSV_HEADERS)
             writer.writerow(metrics)
 
         print(f"--- Finished Iteration {i} ---")
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: ./client_perf.py <output_filename>", file=sys.stderr)
+        sys.exit(1)
+
+    output_file = sys.argv[1]
+
     # Set up signal handlers for graceful exit
     signal.signal(signal.SIGINT, cleanup_and_exit)
     signal.signal(signal.SIGTERM, cleanup_and_exit)
 
-    print(f"Starting client tests. Results will be saved to: {generate_output_filename()}")
-    run_client_benchmark()
+    print(f"Starting client tests. Results will be saved to: {output_file}")
+    run_client_benchmark(output_file)

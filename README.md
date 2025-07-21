@@ -51,20 +51,18 @@ All configuration has been centralized in the `config.py` file. Open this file t
 
 ## How to Run
 
-1.  **Configure the scripts** as described above. Ensure you have passwordless SSH access from the client machine to the server machine if they are different.
-
-2.  **Start the Server Loop**: Open a terminal on the server machine and run the wrapper script.
+1.  **Set Script Permissions**: Ensure all scripts are executable:
     ```bash
-    chmod +x run_server_loop.sh
+    chmod +x run_server_loop.sh server_perf.py client_perf.py
+    ```
+
+2.  **Configure `config.py`**: Adjust the settings in `config.py` for your specific test case (e.g., server binary, arguments, SSH keys). Ensure you have passwordless SSH access to the server.
+
+3.  **Execute the Benchmark**: Simply run the main wrapper script. It will handle the creation of timestamped result files and launch both the client and server processes.
+    ```bash
     ./run_server_loop.sh
     ```
-    The script will start `server_perf.py`, which will wait for a client connection.
 
-3.  **Run the Client Benchmark**: Open another terminal (on the client machine, if applicable) and run the client script.
-    ```bash
-    ./client_perf.py
-    ```
+4.  **Monitor the Output**: You will see progress printed in the terminal as the client and server interact for each iteration.
 
-4.  **Monitor the Output**: You will see progress printed in both terminals as the client and server interact for each iteration.
-
-5.  **Collect Results**: Once the client script finishes, all performance data will be available in the `Results/` directory on their respective machines. The server loop can be stopped with `CTRL+C`.
+5.  **Collect Results**: Once the script finishes, two CSV files (one for the server, one for the client) containing all iteration data will be available in the `Results/` directory.

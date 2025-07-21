@@ -36,12 +36,13 @@ def setup_results_dir():
 # This script no longer generates its own filename, it uses the one from config.
 # The parsing function is now in parsing_util.py
 
-def run_server_benchmark(iteration_number):
+def run_server_benchmark(iteration_number, output_filename):
     """
     Main function to run the target server binary under 'perf stat' and wait for a signal.
 
     Args:
-        iteration_number (int): The current iteration number, passed from the calling script.
+        iteration_number (int): The current iteration number.
+        output_filename (str): The path to the CSV file for logging results.
     """
     if is_port_in_use(config.PORT_TO_CHECK):
         print(f"Error: Port {config.PORT_TO_CHECK} is already in use.", file=sys.stderr)
@@ -122,16 +123,15 @@ def run_server_benchmark(iteration_number):
         metrics = parsing_util.parse_perf_output(stderr_output, iteration_number)
 
         # Append results to the single CSV file
-        output_file = config.SERVER_OUTPUT_FILE
-        file_exists = os.path.exists(output_file)
+        file_exists = os.path.exists(output_filename)
 
-        with open(output_file, "a", newline='') as f:
+        with open(output_filename, "a", newline='') as f:
             writer = csv.DictWriter(f, fieldnames=parsing_util.CSV_HEADERS)
             if not file_exists:
                 writer.writeheader()
             writer.writerow(metrics)
 
-        print(f"Server results for iteration {iteration_number} saved to: {output_file}")
+        print(f"Server results for iteration {iteration_number} saved to: {output_filename}")
 
     except subprocess.TimeoutExpired:
         print("Timeout waiting for the server to terminate. Forcefully killing.", file=sys.stderr)
@@ -148,13 +148,14 @@ def run_server_benchmark(iteration_number):
         print("Server has shut down.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: ./server_perf.py <iteration_number>", file=sys.stderr)
+    if len(sys.argv) != 3:
+        print("Usage: ./server_perf.py <iteration_number> <output_filename>", file=sys.stderr)
         sys.exit(1)
 
     try:
         iteration = int(sys.argv[1])
-        run_server_benchmark(iteration)
+        output_file = sys.argv[2]
+        run_server_benchmark(iteration, output_file)
     except ValueError:
         print("Error: Iteration number must be an integer.", file=sys.stderr)
         sys.exit(1)
