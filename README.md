@@ -13,16 +13,15 @@ This toolkit provides a pair of Python scripts (`server_perf.py` and `client_per
 
 The system is composed of three main components:
 
-1.  **`server_perf.py`**: This script wraps a target server binary (e.g., `/usr/sbin/sshd`) with the `perf stat` command. It starts the server and then waits. It continuously checks for the existence of a "signal file" (`/tmp/stop_server_perf`). When this file is detected, the script sends a `SIGINT` to the `perf` process, causing it to terminate gracefully, print its results, and exit. The script then parses the `perf` output and saves it to a CSV file.
+1.  **`server_perf.py`**: This script starts the target server binary (e.g., `/usr/sbin/sshd`), and then attaches `perf stat` to the server's process ID. It then waits for a signal from the client on a configured TCP port. When the signal is received, the script sends a `SIGINT` to the `perf` process, causing it to terminate gracefully, print its results, and exit. The script then parses the `perf` output and saves it to a CSV file.
 
 2.  **`run_server_loop.sh`**: Since `server_perf.py` is designed to exit after each measurement, this shell script runs it in a loop. When the server script exits, the loop waits a moment and then restarts it, making it ready for the next client connection.
 
 3.  **`client_perf.py`**: This is the orchestrator. For each iteration, it performs the following steps:
-    a. Removes the signal file on the server via SSH to ensure the server is running and ready.
-    b. Waits a few seconds for the server to initialize.
-    c. Runs its own client command (e.g., an `ssh` connection) under `perf stat`.
-    d. Saves its own performance results to a CSV file.
-    e. Creates the signal file on the server via SSH, which tells `server_perf.py` to stop and save its results.
+    a. Waits for the server to be ready by checking if the server's port is open.
+    b. Runs its own client command (e.g., an `ssh` connection) under `perf stat`.
+    c. Saves its own performance results to a CSV file.
+    d. Sends a signal to the server on the configured signaling port, which tells `server_perf.py` to stop and save its results.
 
 This cycle repeats for the configured number of iterations.
 
@@ -50,11 +49,13 @@ All configuration has been centralized in the `config.py` file. Open this file t
   - `TEST_NAME`: A friendly name for your test, used in the output filename.
 
 - **Signaling**:
+
   - `SIGNAL_FILE`: The file used by the client to signal the server to stop.
   - `SIGNAL_SSH_USER`: The SSH user to connect to the server for signaling.
   - `SIGNAL_SSH_HOST`: The hostname or IP address of the server.
   - `SIGNAL_SSH_PORT`: The SSH port to connect to the server for signaling.
   - `SIGNAL_SSH_KEY`: The SSH key to use for connecting to the server for signaling.
+
 
 ## How to Run
 

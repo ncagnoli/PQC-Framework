@@ -83,65 +83,42 @@ def run_server_benchmark():
     perf_command = [
         "perf", "stat", "-e", ",".join(config.PERF_EVENTS)
     ]
+
     server_command = [config.SERVER_BINARY] + config.SERVER_ARGS
-    full_command = perf_command + ["--"] + server_command
 
     try:
-        print(f"Starting server binary '{config.SERVER_BINARY}' with perf...")
-        debug(f"Running command: {' '.join(full_command)}")
+        print(f"Starting server binary '{config.SERVER_BINARY}'...")
+        server_process = subprocess.Popen(server_command)
+        debug(f"Server process started with PID: {server_process.pid}")
 
-        server_process = subprocess.Popen(full_command, stderr=subprocess.PIPE, text=True)
-        debug(f"'perf {os.path.basename(config.SERVER_BINARY)}' server started with PID: {server_process.pid}")
+        time.sleep(1) # Give the server a moment to start
 
-        # Find the master server binary process, which is a child of the 'perf' process
-        master_sshd_process = None
-        try:
-            perf_process = psutil.Process(server_process.pid)
-            # Wait a moment for the child process to spawn
-            time.sleep(1)
-            children = perf_process.children(recursive=True)
-            master_sshd_process = next((p for p in children if p.name() in os.path.basename(config.SERVER_BINARY)), None)
+        perf_command = [
+            "perf", "stat", "-e", ",".join(config.PERF_EVENTS),
+            "-p", str(server_process.pid)
+        ]
 
-            if not master_sshd_process:
-                raise RuntimeError("Could not find the master sshd child process of perf.")
+        debug(f"Running command: {' '.join(perf_command)}")
+        perf_process = subprocess.Popen(perf_command, stderr=subprocess.PIPE, text=True)
 
-            debug(f"Found master server process with PID: {master_sshd_process.pid}")
-        except (psutil.NoSuchProcess, RuntimeError) as e:
-            print(f"Error during initial server process discovery: {e}", file=sys.stderr)
-            server_process.kill()
-            sys.exit(1)
-
-        # Loop to wait for the signal file
-        while not os.path.exists(config.SIGNAL_FILE):
-            time.sleep(1)
-            # Check if the process terminated unexpectedly
-            if server_process.poll() is not None:
-                print("Error: The server process terminated unexpectedly.", file=sys.stderr)
-                stderr = server_process.stderr.read()
-                debug(f"Server stderr output:\n{stderr}")
-                break
+        # Wait for a signal on the signaling port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('0.0.0.0', config.SIGNAL_PORT))
+            s.listen()
+            debug(f"Listening for signal on port {config.SIGNAL_PORT}")
+            conn, addr = s.accept()
+            with conn:
+                debug(f"Signal received from {addr}")
 
         print("\n[INFO] Signal received to stop the server.")
 
-        try:
-            # The master sshd process spawns a new child for the active session. We need to find this new child.
-            all_children = master_sshd_process.children(recursive=True)
-            session_process = next((p for p in all_children if p.status() == psutil.STATUS_RUNNING), None)
-
-            if session_process:
-                debug(f"Found active session process with PID: {session_process.pid}. Sending SIGKILL.")
-                session_process.kill()
-            else:
-                # Fallback in case we can't find the session process, kill the master
-                debug("Could not find a specific session process. Sending SIGKILL to master server process.")
-                master_sshd_process.kill()
-
-        except psutil.NoSuchProcess:
-            debug("Master SSHD process already gone. The 'perf' process should exit shortly.")
+        # Stop the perf process and the server process
+        perf_process.send_signal(signal.SIGINT)
+        server_process.kill()
 
         # Wait for the parent 'perf' process to terminate and capture its output
-        server_process.wait(timeout=10)
-        stderr_output = server_process.stderr.read()
+        stderr_output = perf_process.stderr.read()
+        perf_process.wait(timeout=10)
         debug(f"Final perf stderr output:\n{stderr_output}")
 
         # Parse the perf output and save to CSV
@@ -163,9 +140,6 @@ def run_server_benchmark():
             server_process.send_signal(signal.SIGINT)
             server_process.wait()
     finally:
-        # Clean up the signal file on exit
-        if os.path.exists(config.SIGNAL_FILE):
-            os.remove(config.SIGNAL_FILE)
         print("Server has shut down.")
 
 if __name__ == "__main__":
