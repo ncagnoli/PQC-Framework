@@ -8,7 +8,7 @@
 # The server script to run in a loop.
 SERVER_SCRIPT="./server_perf.py"
 # Number of times to loop. Should be >= the client's ITERATIONS.
-LOOP_COUNT=100
+LOOP_COUNT=1500
 # ---
 
 echo "Starting the server loop for '$SERVER_SCRIPT'..."

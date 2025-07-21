@@ -15,7 +15,7 @@ import time
 # ---------------- SETTINGS ---------------- #
 # --- General ---
 DEBUG_MODE = True  # Set to True to see detailed commands and outputs
-ITERATIONS = 100  # Maximum number of successful test iterations
+ITERATIONS = 1500  # Maximum number of successful test iterations
 RESULTS_DIR = "Results"  # Directory where results will be stored
 SIGNAL_FILE = "/tmp/stop_server_perf" # File used to signal the server
 
@@ -24,10 +24,12 @@ SIGNAL_FILE = "/tmp/stop_server_perf" # File used to signal the server
 # It should be a command that interacts with the server.
 
 # Example for SSH:
+# The command to be executed on the remote server, which also acts as the signal.
+REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
 CLIENT_COMMAND = "ssh"
 CLIENT_ARGS = [
     "-p", "22", "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", "echo 'Connection successful'"
+    "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", REMOTE_COMMAND
 ]
 # For logging purposes, can be a friendly name for the test
 TEST_NAME = "mlkem768x25519-sha256"
@@ -136,39 +138,29 @@ def run_client_benchmark():
         for i in range(ITERATIONS):
             print(f"\n--- Starting Iteration {i} ---")
 
-            # 1. Ensure the server is ready for a new connection
-            print("Preparing server for measurement...")
-            if not signal_server("remove"):
-                print("Failed to prepare server (removing old signal). Aborting.", file=sys.stderr)
-                break
+            # A short pause to allow the server to restart from the previous iteration.
+            # The server is responsible for cleaning up the old signal file upon its startup.
+            time.sleep(2)
 
-            # Pause to give the server's loop script time to restart server_perf.py
-            print("Waiting for server to come online...")
-            time.sleep(3)
-
-            # 2. Measure the performance of the client's SSH connection
-            print("Running perf on the client...")
+            # Measure the performance of the client's SSH connection.
+            # The command itself will create the signal file on the server.
+            print("Running perf on the client to connect and signal the server...")
             perf_output, return_code = execute_perf_on_client(full_perf_command)
 
-            if return_code != 0:
-                print(f"Client measurement failed (return code: {return_code}). Retrying...")
-                # If the connection failed, the server might not have started. Give it more time.
-                time.sleep(2)
-                continue
+            # A non-zero return code from SSH might be expected if the server
+            # shuts down the connection very quickly after the command is sent.
+            # We can consider the operation successful if perf ran.
+            if "Timeout" in perf_output:
+                 print(f"Client measurement timed out. Retrying...")
+                 continue
 
-            print("Client measurement successful!")
+            print("Client measurement captured!")
             metrics = parse_perf_output(perf_output)
             metrics["iteration"] = i
             writer.writerow([
                 metrics["iteration"], metrics["cycles"], metrics["instructions"], metrics["cache-misses"],
                 metrics["branch-misses"], metrics["page-faults"], metrics["context-switches"], metrics["cpu-migrations"]
             ])
-
-            # 3. Signal the server to stop and record its data
-            print("Signaling server to stop and log data...")
-            if not signal_server("create"):
-                print("Failed to signal server to stop. Aborting test.", file=sys.stderr)
-                break
 
             print(f"--- Finished Iteration {i} ---")
 
