@@ -37,18 +37,24 @@ def setup_results_dir():
 # The parsing function is now in parsing_util.py
 
 def get_session_id():
-    """Reads the session ID from the session file, retrying if it doesn't exist yet."""
-    retries = 5
-    for i in range(retries):
-        if os.path.exists(config.SESSION_ID_FILE):
-            with open(config.SESSION_ID_FILE, "r") as f:
-                session_id = f.read().strip()
-            if session_id:
-                debug(f"Read session ID: {session_id}")
-                return session_id
-        debug(f"Session file not found or empty. Retrying in 1 second... ({i+1}/{retries})")
+    """
+    Waits for the session ID file to be created by the client, then reads and returns the ID.
+    """
+    print("Waiting for the client to create the session ID file...")
+    while not os.path.exists(config.SESSION_ID_FILE):
         time.sleep(1)
-    raise RuntimeError("Could not read session ID from file after multiple retries.")
+
+    # Once the file exists, there might be a slight delay before it's written.
+    # We'll retry reading it for a moment to be safe.
+    for _ in range(5): # 5 attempts
+        with open(config.SESSION_ID_FILE, "r") as f:
+            session_id = f.read().strip()
+        if session_id:
+            debug(f"Read session ID: {session_id}")
+            return session_id
+        time.sleep(0.5)
+
+    raise RuntimeError("Session ID file was created, but it's empty.")
 
 
 def run_server_benchmark(iteration_number):
