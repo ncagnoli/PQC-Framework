@@ -36,18 +36,42 @@ def setup_results_dir():
 # This script no longer generates its own filename, it uses the one from config.
 # The parsing function is now in parsing_util.py
 
+def get_session_id():
+    """Reads the session ID from the session file, retrying if it doesn't exist yet."""
+    retries = 5
+    for i in range(retries):
+        if os.path.exists(config.SESSION_ID_FILE):
+            with open(config.SESSION_ID_FILE, "r") as f:
+                session_id = f.read().strip()
+            if session_id:
+                debug(f"Read session ID: {session_id}")
+                return session_id
+        debug(f"Session file not found or empty. Retrying in 1 second... ({i+1}/{retries})")
+        time.sleep(1)
+    raise RuntimeError("Could not read session ID from file after multiple retries.")
+
+
 def run_server_benchmark(iteration_number):
     """
     Main function to run the target server binary under 'perf stat' and wait for a signal.
 
     Args:
-        iteration_number (int): The current iteration number, passed from the calling script.
+        iteration_number (int): The current iteration number.
     """
-    if is_port_in_use(config.PORT_TO_CHECK):
-        print(f"Error: Port {config.PORT_TO_CHECK} is already in use.", file=sys.stderr)
-        sys.exit(1)
+    if iteration_number == 0:
+        # Only check the port on the very first run to avoid race conditions
+        if is_port_in_use(config.PORT_TO_CHECK):
+            print(f"Error: Port {config.PORT_TO_CHECK} is already in use. Please free it up before starting.", file=sys.stderr)
+            sys.exit(1)
 
     setup_results_dir()
+
+    try:
+        session_id = get_session_id()
+        output_filename = os.path.join(config.RESULTS_DIR, f"server-results-{session_id}.csv")
+    except RuntimeError as e:
+        print(e, file=sys.stderr)
+        sys.exit(1)
 
     # Ensure no old signal file is present
     if os.path.exists(config.SIGNAL_FILE):
@@ -122,16 +146,16 @@ def run_server_benchmark(iteration_number):
         metrics = parsing_util.parse_perf_output(stderr_output, iteration_number)
 
         # Append results to the single CSV file
-        output_file = config.SERVER_OUTPUT_FILE
-        file_exists = os.path.exists(output_file)
+        # The header is written only if the file doesn't exist (first iteration)
+        file_exists = os.path.exists(output_filename)
 
-        with open(output_file, "a", newline='') as f:
+        with open(output_filename, "a", newline='') as f:
             writer = csv.DictWriter(f, fieldnames=parsing_util.CSV_HEADERS)
             if not file_exists:
                 writer.writeheader()
             writer.writerow(metrics)
 
-        print(f"Server results for iteration {iteration_number} saved to: {output_file}")
+        print(f"Server results for iteration {iteration_number} saved to: {output_filename}")
 
     except subprocess.TimeoutExpired:
         print("Timeout waiting for the server to terminate. Forcefully killing.", file=sys.stderr)

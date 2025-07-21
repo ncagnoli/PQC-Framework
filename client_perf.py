@@ -63,16 +63,37 @@ def signal_server(action):
             print(f"Server stderr: {e.stderr}", file=sys.stderr)
         return False
 
+def create_session_id():
+    """Generates a unique session ID and writes it to the session file."""
+    # Format: <config_name>-<date>
+    date_str = datetime.datetime.now().strftime("%Y%m%d")
+    session_id = f"{config.SERVER_CONFIG_FILE}-{date_str}"
+
+    with open(config.SESSION_ID_FILE, "w") as f:
+        f.write(session_id)
+
+    debug(f"Created session ID: {session_id}")
+    return session_id
+
 def run_client_benchmark():
     """Main function to run the client-side performance benchmark."""
     setup_results_dir()
-    output_file = config.CLIENT_OUTPUT_FILE
+    session_id = create_session_id()
+    output_filename = os.path.join(config.RESULTS_DIR, f"client-results-{session_id}.csv")
 
     # Write header only if the file doesn't exist
-    if not os.path.exists(output_file):
-        with open(output_file, "w", newline='') as f:
+    if not os.path.exists(output_filename):
+        with open(output_filename, "w", newline='') as f:
             writer = csv.writer(f)
             writer.writerow(parsing_util.CSV_HEADERS)
+    else:
+        # If file exists, it's from a resumed run, clear it to start fresh
+        debug(f"Output file {output_filename} already exists. Clearing for a new run.")
+        os.remove(output_filename)
+        with open(output_filename, "w", newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(parsing_util.CSV_HEADERS)
+
 
     perf_command_base = [
         "perf", "stat", "-e",
@@ -97,7 +118,7 @@ def run_client_benchmark():
         print("Client measurement captured!")
         metrics = parsing_util.parse_perf_output(perf_output, i)
         
-        with open(output_file, "a", newline='') as f:
+        with open(output_filename, "a", newline='') as f:
             writer = csv.DictWriter(f, fieldnames=parsing_util.CSV_HEADERS)
             writer.writerow(metrics)
 
@@ -108,5 +129,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, cleanup_and_exit)
     signal.signal(signal.SIGTERM, cleanup_and_exit)
 
-    print(f"Starting client tests. Results will be saved to: {generate_output_filename()}")
     run_client_benchmark()
