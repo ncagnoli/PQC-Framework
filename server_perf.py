@@ -54,10 +54,7 @@ def generate_output_filename():
 
 def parse_perf_output(output):
     """Parses the stderr output from 'perf stat' to extract metrics."""
-    metrics = {
-        "cycles": 0, "instructions": 0, "cache-misses": 0,
-        "branch-misses": 0, "page-faults": 0, "context-switches": 0, "cpu-migrations": 0
-    }
+    metrics = {event: 0 for event in config.PERF_EVENTS}
     for line in output.split('\n'):
         # Look for lines containing a number and a metric
         parts = line.strip().split()
@@ -84,8 +81,7 @@ def run_server_benchmark():
         os.remove(config.SIGNAL_FILE)
 
     perf_command = [
-        "perf", "stat", "-e",
-        "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
+        "perf", "stat", "-e", ",".join(config.PERF_EVENTS)
     ]
     server_command = [config.SERVER_BINARY] + config.SERVER_ARGS
     full_command = perf_command + ["--"] + server_command
@@ -152,15 +148,10 @@ def run_server_benchmark():
         output_file = generate_output_filename()
         with open(output_file, "w", newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([
-                "cycles", "instructions", "cache-misses", "branch-misses",
-                "page-faults", "context-switches", "cpu-migrations"
-            ])
+            writer.writerow(config.PERF_EVENTS)
             metrics = parse_perf_output(stderr_output)
-            writer.writerow([
-                metrics["cycles"], metrics["instructions"], metrics["cache-misses"],
-                metrics["branch-misses"], metrics["page-faults"], metrics["context-switches"], metrics["cpu-migrations"]
-            ])
+            row = [metrics[event] for event in config.PERF_EVENTS]
+            writer.writerow(row)
         print(f"Server results saved to: {output_file}")
 
     except subprocess.TimeoutExpired:

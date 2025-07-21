@@ -3,10 +3,17 @@
 DEBUG_MODE = True
 # The number of times the client-server test iteration should run.
 ITERATIONS = 1500
+# The number of times to loop the server. Should be >= ITERATIONS.
+LOOP_COUNT = 1500
 # Directory where the resulting CSV files will be stored.
 RESULTS_DIR = "Results"
 # The file used by the client to signal the server to stop.
 SIGNAL_FILE = "/tmp/stop_server_perf"
+# The perf events to monitor.
+PERF_EVENTS = [
+    "cycles", "instructions", "cache-misses", "branch-misses",
+    "page-faults", "context-switches", "cpu-migrations"
+]
 
 
 # --- Server Settings (`server_perf.py`) ---

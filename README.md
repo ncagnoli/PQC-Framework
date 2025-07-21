@@ -34,7 +34,10 @@ All configuration has been centralized in the `config.py` file. Open this file t
 
 - **General Settings**:
   - `ITERATIONS`: The number of benchmark iterations to run.
+  - `LOOP_COUNT`: The number of times the server should loop. Should be >= `ITERATIONS`.
   - `DEBUG_MODE`: Set to `True` to see verbose output from the scripts.
+  - `RESULTS_DIR`: The directory where the resulting CSV files will be stored.
+  - `PERF_EVENTS`: A list of `perf` events to monitor.
 
 - **Server Settings**:
   - `SERVER_BINARY`: The absolute path to the server executable (e.g., `/usr/sbin/sshd`).
@@ -43,11 +46,15 @@ All configuration has been centralized in the `config.py` file. Open this file t
 
 - **Client Settings**:
   - `CLIENT_COMMAND`: The client executable to run (e.g., `ssh`).
-  - `CLIENT_ARGS`: A list of arguments for the client command. By default, this includes the `REMOTE_COMMAND` which signals the server.
+  - `CLIENT_ARGS`: A list of arguments for the client command.
   - `TEST_NAME`: A friendly name for your test, used in the output filename.
 
 - **Signaling**:
-  - `SIGNAL_SSH_*`: SSH connection details (`USER`, `HOST`, `PORT`, `KEY`) used by the client to connect to the server. **This requires passwordless SSH access (e.g., via public key authentication) to be configured for the specified user.**
+  - `SIGNAL_FILE`: The file used by the client to signal the server to stop.
+  - `SIGNAL_SSH_USER`: The SSH user to connect to the server for signaling.
+  - `SIGNAL_SSH_HOST`: The hostname or IP address of the server.
+  - `SIGNAL_SSH_PORT`: The SSH port to connect to the server for signaling.
+  - `SIGNAL_SSH_KEY`: The SSH key to use for connecting to the server for signaling.
 
 ## How to Run
 

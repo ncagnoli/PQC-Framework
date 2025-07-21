@@ -7,8 +7,8 @@
 # --- CONFIGURATION ---
 # The server script to run in a loop.
 SERVER_SCRIPT="./server_perf.py"
-# Number of times to loop. Should be >= the client's ITERATIONS.
-LOOP_COUNT=1500
+# Read LOOP_COUNT from config.py
+LOOP_COUNT=$(python3 -c "import config; print(config.LOOP_COUNT)")
 
 echo "Starting the server loop for '$SERVER_SCRIPT'..."
 for (( i=1; i<=LOOP_COUNT; i++ ))

@@ -38,10 +38,7 @@ def execute_perf_on_client(command):
 
 def parse_perf_output(output):
     """Parses the stderr output from 'perf stat' to extract metrics."""
-    metrics = {
-        "cycles": 0, "instructions": 0, "cache-misses": 0,
-        "branch-misses": 0, "page-faults": 0, "context-switches": 0, "cpu-migrations": 0
-    }
+    metrics = {event: 0 for event in config.PERF_EVENTS}
     for line in output.split('\n'):
         parts = line.strip().split()
         if len(parts) > 1:
@@ -89,18 +86,14 @@ def run_client_benchmark():
     output_file = generate_output_filename()
 
     perf_command_base = [
-        "perf", "stat", "-e",
-        "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
+        "perf", "stat", "-e", ",".join(config.PERF_EVENTS)
     ]
     client_connection_command = [config.CLIENT_COMMAND] + config.CLIENT_ARGS
     full_perf_command = perf_command_base + ["--"] + client_connection_command
 
     with open(output_file, "w", newline='') as f:
         writer = csv.writer(f)
-        writer.writerow([
-            "iteration", "cycles", "instructions", "cache-misses", "branch-misses",
-            "page-faults", "context-switches", "cpu-migrations"
-        ])
+        writer.writerow(["iteration"] + config.PERF_EVENTS)
         
         for i in range(config.ITERATIONS):
             print(f"\n--- Starting Iteration {i} ---")
@@ -124,10 +117,8 @@ def run_client_benchmark():
             print("Client measurement captured!")
             metrics = parse_perf_output(perf_output)
             metrics["iteration"] = i
-            writer.writerow([
-                metrics["iteration"], metrics["cycles"], metrics["instructions"], metrics["cache-misses"],
-                metrics["branch-misses"], metrics["page-faults"], metrics["context-switches"], metrics["cpu-migrations"]
-            ])
+            row = [metrics["iteration"]] + [metrics[event] for event in config.PERF_EVENTS]
+            writer.writerow(row)
 
             print(f"--- Finished Iteration {i} ---")
 
