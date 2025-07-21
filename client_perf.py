@@ -28,7 +28,7 @@ SIGNAL_FILE = "/tmp/stop_server_perf" # File used to signal the server
 REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
 CLIENT_COMMAND = "ssh"
 CLIENT_ARGS = [
-    "-p", "22", "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
+    "-p", "2222", "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
     "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", REMOTE_COMMAND
 ]
 # For logging purposes, can be a friendly name for the test
@@ -39,7 +39,7 @@ TEST_NAME = "mlkem768x25519-sha256"
 # This part is necessarily SSH-specific.
 SIGNAL_SSH_USER = "test1"
 SIGNAL_SSH_HOST = "localhost"
-SIGNAL_SSH_PORT = 22
+SIGNAL_SSH_PORT = 2222
 SIGNAL_SSH_KEY = "id_rsa"
 # ------------------------------------------ #
 
