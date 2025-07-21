@@ -80,7 +80,7 @@ def run_client_benchmark():
     setup_results_dir()
     session_id = create_session_id()
     output_filename = os.path.join(config.RESULTS_DIR, f"client-results-{session_id}.csv")
-    
+
     # Write header only if the file doesn't exist
     if not os.path.exists(output_filename):
         with open(output_filename, "w", newline='') as f:

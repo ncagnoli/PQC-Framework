@@ -57,17 +57,18 @@ All configuration has been centralized in the `config.py` file. Open this file t
     ```
 
 2.  **Configure `config.py`**: Adjust the settings in `config.py` for your specific test case (e.g., server binary, arguments, SSH keys). Ensure you have passwordless SSH access to the server from the client machine.
+tor the Output**: You will see progress printed in both terminals as they synchronize and interact.
 
-3.  **Run the Client First**: In a terminal, run the client script. It will create a session ID file and then wait for the server to become available.
-    ```bash
-    ./client_perf.py
-    ```
-
-4.  **Start the Server Loop**: Immediately after starting the client, run the server loop script in a second terminal. It will read the session ID created by the client and start the benchmark cycle.
+3.  **Start the Server Loop**: In a terminal on the server machine, run the wrapper script. It will wait for the client to start the process.
     ```bash
     ./run_server_loop.sh
     ```
 
-5.  **Monitor the Output**: You will see progress printed in both terminals as they synchronize and interact.
+4.  **Run the Client Benchmark**: In a separate terminal (on the client machine), run the client script. This will create the session ID and kick off the benchmark iterations.
+    ```bash
+    ./client_perf.py
+    ```
+
+5.  **Monitor the Output**: You will see progress printed in both terminals as the client and server interact.
 
 6.  **Collect Results**: Once the client script finishes its iterations, you can stop the server loop with `CTRL+C`. Two CSV files (one for the server, one for the client) containing all iteration data will be in the `Results/` directory.
