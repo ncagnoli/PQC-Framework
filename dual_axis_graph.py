@@ -3,6 +3,7 @@ import pandas as pd
 from bokeh.plotting import figure, show
 from bokeh.io import output_file
 from bokeh.models import DataRange1d, NumeralTickFormatter, LinearAxis, HoverTool, Legend
+import config
 
 def create_dual_axis_plot(server_csv, client_csv, output_html):
     """
@@ -26,9 +27,9 @@ def create_dual_axis_plot(server_csv, client_csv, output_html):
         title="CPU Performance: Cycles & Instructions per Iteration",
         x_axis_label="Iteration",
         y_axis_label="CPU Cycles",
-        width=1200,
-        height=800,
-        background_fill_color="#f3f3f3"
+        width=config.PLOT_WIDTH,
+        height=config.PLOT_HEIGHT,
+        background_fill_color=config.PLOT_BG_COLOR
     )
 
     # --- Primary Y-Axis (CPU Cycles) ---
@@ -83,11 +84,11 @@ def create_dual_axis_plot(server_csv, client_csv, output_html):
     p.legend.background_fill_alpha = 0.8
 
     # --- Title and Label Styling ---
-    p.title.text_font_size = "18pt"
-    p.xaxis.axis_label_text_font_size = "12pt"
-    p.yaxis.axis_label_text_font_size = "12pt"
-    p.xaxis.major_label_text_font_size = "10pt"
-    p.yaxis.major_label_text_font_size = "10pt"
+    p.title.text_font_size = config.TITLE_FONT_SIZE
+    p.xaxis.axis_label_text_font_size = config.AXIS_LABEL_FONT_SIZE
+    p.yaxis.axis_label_text_font_size = config.AXIS_LABEL_FONT_SIZE
+    p.xaxis.major_label_text_font_size = config.MAJOR_LABEL_FONT_SIZE
+    p.yaxis.major_label_text_font_size = config.MAJOR_LABEL_FONT_SIZE
 
     # --- Output ---
     output_file(output_html)
@@ -104,8 +105,8 @@ def main():
     parser.add_argument("client_csv", help="Path to the client performance CSV file.")
     parser.add_argument(
         "-o", "--output",
-        default="dual_axis_plot.html",
-        help="Output HTML file name (default: dual_axis_plot.html)."
+        default=config.DEFAULT_DUAL_AXIS_PLOT_OUTPUT,
+        help=f"Output HTML file name (default: {config.DEFAULT_DUAL_AXIS_PLOT_OUTPUT})."
     )
     args = parser.parse_args()
 
