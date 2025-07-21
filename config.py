@@ -43,3 +43,17 @@ SIGNAL_SSH_PORT = PORT_TO_CHECK
 SIGNAL_SSH_KEY = "id_rsa"
 
 
+# --- Graph Settings (`graph.py` and `dual_axis_graph.py`) ---
+# Default output filename for the single-axis plot.
+DEFAULT_SINGLE_AXIS_PLOT_OUTPUT = "performance_plot.html"
+# Default output filename for the dual-axis plot.
+DEFAULT_DUAL_AXIS_PLOT_OUTPUT = "dual_axis_plot.html"
+# Plot dimensions
+PLOT_WIDTH = 1200
+PLOT_HEIGHT = 800
+# Background color for the plot
+PLOT_BG_COLOR = "#f3f3f3"
+# Font sizes
+TITLE_FONT_SIZE = "18pt"
+AXIS_LABEL_FONT_SIZE = "12pt"
+MAJOR_LABEL_FONT_SIZE = "10pt"

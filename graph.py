@@ -3,6 +3,7 @@ import pandas as pd
 from bokeh.plotting import figure, show
 from bokeh.io import output_file
 from bokeh.models import NumeralTickFormatter
+import config
 
 def create_plot(server_csv, client_csv, output_html):
     """
@@ -25,9 +26,9 @@ def create_plot(server_csv, client_csv, output_html):
         title="CPU Cycles per Iteration",
         x_axis_label="Iteration",
         y_axis_label="CPU Cycles",
-        width=1024,
-        height=768,
-        background_fill_color="#fafafa"
+        width=config.PLOT_WIDTH,
+        height=config.PLOT_HEIGHT,
+        background_fill_color=config.PLOT_BG_COLOR
     )
 
     # Add line renderers with legend labels
@@ -67,8 +68,8 @@ def main():
     parser.add_argument("client_csv", help="Path to the client performance CSV file.")
     parser.add_argument(
         "-o", "--output",
-        default="performance_plot.html",
-        help="Output HTML file name (default: performance_plot.html)."
+        default=config.DEFAULT_SINGLE_AXIS_PLOT_OUTPUT,
+        help=f"Output HTML file name (default: {config.DEFAULT_SINGLE_AXIS_PLOT_OUTPUT})."
     )
     args = parser.parse_args()
 
