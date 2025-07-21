@@ -9,7 +9,6 @@
 SERVER_SCRIPT="./server_perf.py"
 # Number of times to loop. Should be >= the client's ITERATIONS.
 LOOP_COUNT=1500
-# ---
 
 echo "Starting the server loop for '$SERVER_SCRIPT'..."
 for (( i=1; i<=LOOP_COUNT; i++ ))
@@ -27,5 +26,4 @@ do
     echo "--- Server script finished. Restarting in 2 seconds... ---"
     sleep 2
 done
-
 echo "Server loop finished."

@@ -1,7 +1,4 @@
 #!/usr/bin/python3
-#
-# CLIENT MONITOR
-#       by Nestor Cagnoli
 
 import subprocess
 import csv

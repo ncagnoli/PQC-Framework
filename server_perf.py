@@ -1,7 +1,4 @@
 #!/usr/bin/python3
-#
-# SERVER MONITOR
-#       by Nestor Cagnoli
 
 import subprocess
 import csv
@@ -182,3 +179,5 @@ def run_server_benchmark():
 
 if __name__ == "__main__":
     run_server_benchmark()
+
+    
