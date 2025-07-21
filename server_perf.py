@@ -22,8 +22,9 @@ SIGNAL_FILE = "/tmp/stop_server_perf" # File used to signal the server to stop
 # Example for SSHD:
 SERVER_BINARY = "/usr/sbin/sshd"
 SERVER_ARGS = ["-D", "-e", "-p", "22", "-f", "./sshd_config_mlkem768x25519-sha256"]
-SERVER_CONFIG_FILE = "./sshd_config_mlkem768x25519-sha256" # For logging purposes
-PORT_TO_CHECK = 22 # Port to check for availability, 'None' to disable
+# The script will try to find the config file path from the arguments (looks for '-f').
+# If not found, the output filename will be 'generic'.
+PORT_TO_CHECK = 22 # Port to check for availability, 'None' to disable.
 # ------------------------------------------ #
 
 def debug(msg):
@@ -44,10 +45,26 @@ def setup_results_dir():
     """Ensures the results directory exists."""
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
+def get_config_from_args(args):
+    """Finds a config file path in the server arguments, typically after a '-f' flag."""
+    try:
+        # Find the index of the flag (e.g., '-f')
+        idx = args.index('-f')
+        # The config file path should be the next item
+        if idx + 1 < len(args):
+            return args[idx + 1]
+    except ValueError:
+        # The flag was not found
+        pass
+    return None
+
 def generate_output_filename():
     """Generates a unique filename for the output CSV based on timestamp, hostname, and config."""
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    config_filename = os.path.basename(SERVER_CONFIG_FILE) if SERVER_CONFIG_FILE else "generic"
+
+    config_path = get_config_from_args(SERVER_ARGS)
+    config_filename = os.path.basename(config_path) if config_path else "generic"
+
     hostname = socket.gethostname()
     return os.path.join(RESULTS_DIR, f"{hostname}-{timestamp}-server-{config_filename}.csv")
 
