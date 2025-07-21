@@ -12,6 +12,7 @@ import datetime
 import socket
 import time
 import config
+import parsing_util
 
 def debug(msg):
     """Prints a debug message if DEBUG_MODE is True."""
@@ -21,12 +22,6 @@ def debug(msg):
 def setup_results_dir():
     """Ensures the results directory exists."""
     os.makedirs(config.RESULTS_DIR, exist_ok=True)
-
-def generate_output_filename():
-    """Generates a unique filename for the output CSV."""
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    hostname = socket.gethostname()
-    return os.path.join(config.RESULTS_DIR, f"{hostname}-{timestamp}-client-{config.TEST_NAME}.csv")
 
 def execute_perf_on_client(command):
     """Executes a command under 'perf stat' and returns the output and return code."""
@@ -38,24 +33,6 @@ def execute_perf_on_client(command):
     except subprocess.TimeoutExpired:
         debug("Command timed out.")
         return "Timeout", -1
-
-def parse_perf_output(output):
-    """Parses the stderr output from 'perf stat' to extract metrics."""
-    metrics = {
-        "cycles": 0, "instructions": 0, "cache-misses": 0,
-        "branch-misses": 0, "page-faults": 0, "context-switches": 0, "cpu-migrations": 0
-    }
-    for line in output.split('\n'):
-        parts = line.strip().split()
-        if len(parts) > 1:
-            value_str = parts[0].replace(',', '').replace('.', '')
-            key = parts[1]
-            if key in metrics:
-                try:
-                    metrics[key] = int(value_str)
-                except ValueError:
-                    metrics[key] = 0
-    return metrics
 
 def cleanup_and_exit(signum, frame):
     """Handles script interruption (e.g., CTRL+C) for a clean exit."""
@@ -89,7 +66,13 @@ def signal_server(action):
 def run_client_benchmark():
     """Main function to run the client-side performance benchmark."""
     setup_results_dir()
-    output_file = generate_output_filename()
+    output_file = config.CLIENT_OUTPUT_FILE
+
+    # Write header only if the file doesn't exist
+    if not os.path.exists(output_file):
+        with open(output_file, "w", newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(parsing_util.CSV_HEADERS)
 
     perf_command_base = [
         "perf", "stat", "-e",
@@ -98,41 +81,27 @@ def run_client_benchmark():
     client_connection_command = [config.CLIENT_COMMAND] + config.CLIENT_ARGS
     full_perf_command = perf_command_base + ["--"] + client_connection_command
 
-    with open(output_file, "w", newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            "iteration", "cycles", "instructions", "cache-misses", "branch-misses",
-            "page-faults", "context-switches", "cpu-migrations"
-        ])
+    for i in range(config.ITERATIONS):
+        print(f"\n--- Starting Iteration {i} ---")
+
+        # A short pause to allow the server to restart from the previous iteration.
+        time.sleep(2)
+
+        print("Running perf on the client to connect and signal the server...")
+        perf_output, return_code = execute_perf_on_client(full_perf_command)
+
+        if "Timeout" in perf_output:
+             print(f"Client measurement timed out. Retrying...")
+             continue
+
+        print("Client measurement captured!")
+        metrics = parsing_util.parse_perf_output(perf_output, i)
         
-        for i in range(config.ITERATIONS):
-            print(f"\n--- Starting Iteration {i} ---")
+        with open(output_file, "a", newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=parsing_util.CSV_HEADERS)
+            writer.writerow(metrics)
 
-            # A short pause to allow the server to restart from the previous iteration.
-            # The server is responsible for cleaning up the old signal file upon its startup.
-            time.sleep(2)
-
-            # Measure the performance of the client's SSH connection.
-            # The command itself will create the signal file on the server.
-            print("Running perf on the client to connect and signal the server...")
-            perf_output, return_code = execute_perf_on_client(full_perf_command)
-
-            # A non-zero return code from SSH might be expected if the server
-            # shuts down the connection very quickly after the command is sent.
-            # We can consider the operation successful if perf ran.
-            if "Timeout" in perf_output:
-                 print(f"Client measurement timed out. Retrying...")
-                 continue
-
-            print("Client measurement captured!")
-            metrics = parse_perf_output(perf_output)
-            metrics["iteration"] = i
-            writer.writerow([
-                metrics["iteration"], metrics["cycles"], metrics["instructions"], metrics["cache-misses"],
-                metrics["branch-misses"], metrics["page-faults"], metrics["context-switches"], metrics["cpu-migrations"]
-            ])
-
-            print(f"--- Finished Iteration {i} ---")
+        print(f"--- Finished Iteration {i} ---")
 
 if __name__ == "__main__":
     # Set up signal handlers for graceful exit

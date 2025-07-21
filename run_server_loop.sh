@@ -12,10 +12,10 @@ LOOP_COUNT=1500
 # ---
 
 echo "Starting the server loop for '$SERVER_SCRIPT'..."
-for (( i=1; i<=LOOP_COUNT; i++ ))
+for (( i=0; i<LOOP_COUNT; i++ ))
 do
     echo "--- Starting server script, iteration $i ---"
-    $SERVER_SCRIPT
+    $SERVER_SCRIPT $i
 
     # The server script is expected to exit with 0 when signaled by the client.
     # A non-zero exit code indicates an actual error, so we stop the loop.

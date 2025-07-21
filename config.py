@@ -8,6 +8,13 @@ RESULTS_DIR = "Results"
 # The file used by the client to signal the server to stop.
 SIGNAL_FILE = "/tmp/stop_server_perf"
 
+# --- Output Filenames ---
+# A timestamp is included to ensure separate files for each full run.
+import datetime
+TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+SERVER_OUTPUT_FILE = f"{RESULTS_DIR}/server-results-{TIMESTAMP}.csv"
+CLIENT_OUTPUT_FILE = f"{RESULTS_DIR}/client-results-{TIMESTAMP}.csv"
+
 
 # --- Server Settings (`server_perf.py`) ---
 # The server binary to be benchmarked.
