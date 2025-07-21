@@ -21,7 +21,7 @@ SIGNAL_FILE = "/tmp/stop_server_perf" # File used to signal the server to stop
 # --- Server Command Configuration ---
 # Example for SSHD:
 SERVER_BINARY = "/usr/sbin/sshd"
-SERVER_ARGS = ["-D", "-e", "-p", "22", "-f", "./sshd_config_mlkem768x25519-sha256"]
+SERVER_ARGS = ["-D", "-e", "-p", "22", "-f", "sshd_config_padrao"]
 # The script will try to find the config file path from the arguments (looks for '-f').
 # If not found, the output filename will be 'generic'.
 PORT_TO_CHECK = 22 # Port to check for availability, 'None' to disable.
