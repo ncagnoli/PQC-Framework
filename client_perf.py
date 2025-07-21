@@ -11,52 +11,22 @@ import os
 import datetime
 import socket
 import time
-
-# ---------------- SETTINGS ---------------- #
-# --- General ---
-DEBUG_MODE = True  # Set to True to see detailed commands and outputs
-ITERATIONS = 1500  # Maximum number of successful test iterations
-RESULTS_DIR = "Results"  # Directory where results will be stored
-SIGNAL_FILE = "/tmp/stop_server_perf" # File used to signal the server
-
-# --- Client Command Configuration ---
-# This command is what 'perf' will measure.
-# It should be a command that interacts with the server.
-
-# Example for SSH:
-# The command to be executed on the remote server, which also acts as the signal.
-REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
-CLIENT_COMMAND = "ssh"
-CLIENT_ARGS = [
-    "-p", "2222", "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", REMOTE_COMMAND
-]
-# For logging purposes, can be a friendly name for the test
-TEST_NAME = "mlkem768x25519-sha256"
-
-# --- Server Signaling Configuration ---
-# SSH settings used to create/remove the signal file on the server.
-# This part is necessarily SSH-specific.
-SIGNAL_SSH_USER = "test1"
-SIGNAL_SSH_HOST = "localhost"
-SIGNAL_SSH_PORT = 2222
-SIGNAL_SSH_KEY = "id_rsa"
-# ------------------------------------------ #
+import config
 
 def debug(msg):
     """Prints a debug message if DEBUG_MODE is True."""
-    if DEBUG_MODE:
+    if config.DEBUG_MODE:
         print(f"[DEBUG] {msg}")
 
 def setup_results_dir():
     """Ensures the results directory exists."""
-    os.makedirs(RESULTS_DIR, exist_ok=True)
+    os.makedirs(config.RESULTS_DIR, exist_ok=True)
 
 def generate_output_filename():
     """Generates a unique filename for the output CSV."""
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     hostname = socket.gethostname()
-    return os.path.join(RESULTS_DIR, f"{hostname}-{timestamp}-client-{TEST_NAME}.csv")
+    return os.path.join(config.RESULTS_DIR, f"{hostname}-{timestamp}-client-{config.TEST_NAME}.csv")
 
 def execute_perf_on_client(command):
     """Executes a command under 'perf stat' and returns the output and return code."""
@@ -97,12 +67,12 @@ def signal_server(action):
     if action not in ["create", "remove"]:
         raise ValueError("Action must be 'create' or 'remove'")
 
-    command_str = f"touch {SIGNAL_FILE}" if action == "create" else f"rm -f {SIGNAL_FILE}"
+    command_str = f"touch {config.SIGNAL_FILE}" if action == "create" else f"rm -f {config.SIGNAL_FILE}"
 
     ssh_command = [
-        "ssh", "-p", str(SIGNAL_SSH_PORT), "-i", SIGNAL_SSH_KEY,
+        "ssh", "-p", str(config.SIGNAL_SSH_PORT), "-i", config.SIGNAL_SSH_KEY,
         "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
-        f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}", command_str
+        f"{config.SIGNAL_SSH_USER}@{config.SIGNAL_SSH_HOST}", command_str
     ]
 
     debug(f"Signaling server ('{action}'): {' '.join(ssh_command)}")
@@ -125,7 +95,7 @@ def run_client_benchmark():
         "perf", "stat", "-e",
         "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
     ]
-    client_connection_command = [CLIENT_COMMAND] + CLIENT_ARGS
+    client_connection_command = [config.CLIENT_COMMAND] + config.CLIENT_ARGS
     full_perf_command = perf_command_base + ["--"] + client_connection_command
 
     with open(output_file, "w", newline='') as f:
@@ -135,7 +105,7 @@ def run_client_benchmark():
             "page-faults", "context-switches", "cpu-migrations"
         ])
         
-        for i in range(ITERATIONS):
+        for i in range(config.ITERATIONS):
             print(f"\n--- Starting Iteration {i} ---")
 
             # A short pause to allow the server to restart from the previous iteration.

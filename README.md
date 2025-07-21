@@ -28,24 +28,26 @@ This cycle repeats for the configured number of iterations.
 
 ## Setup and Configuration
 
-### Server (`server_perf.py`)
+All configuration has been centralized in the `config.py` file. Open this file to adjust all parameters for your benchmark.
 
-Open `server_perf.py` and edit the `SETTINGS` section:
+### Key Configuration Variables in `config.py`
 
-- `SERVER_BINARY`: The absolute path to the server executable you want to benchmark (e.g., `/usr/sbin/sshd`, `/usr/sbin/nginx`).
-- `SERVER_ARGS`: A list of command-line arguments for the server binary.
-- `SERVER_CONFIG_FILE`: (Optional) Path to a config file, used for generating a descriptive output filename.
-- `PORT_TO_CHECK`: (Optional) A port number to check for availability before starting the server. Set to `None` to disable the check.
+- **General Settings**:
+  - `ITERATIONS`: The number of benchmark iterations to run.
+  - `DEBUG_MODE`: Set to `True` to see verbose output from the scripts.
 
-### Client (`client_perf.py`)
+- **Server Settings**:
+  - `SERVER_BINARY`: The absolute path to the server executable (e.g., `/usr/sbin/sshd`).
+  - `SERVER_ARGS`: A list of command-line arguments for the server binary.
+  - `PORT_TO_CHECK`: The port the server will use.
 
-Open `client_perf.py` and edit the `SETTINGS` section:
+- **Client Settings**:
+  - `CLIENT_COMMAND`: The client executable to run (e.g., `ssh`).
+  - `CLIENT_ARGS`: A list of arguments for the client command. By default, this includes the `REMOTE_COMMAND` which signals the server.
+  - `TEST_NAME`: A friendly name for your test, used in the output filename.
 
-- `ITERATIONS`: The number of benchmark iterations to run.
-- `CLIENT_COMMAND`: The client executable to run (e.g., `ssh`, `curl`).
-- `CLIENT_ARGS`: A list of arguments for the client command. This command should interact with the server.
-- `TEST_NAME`: A friendly name for the test, used in the output filename.
-- `SIGNAL_SSH_*` variables: These settings (`SIGNAL_SSH_USER`, `SIGNAL_SSH_HOST`, etc.) are used to connect to the server to create and remove the signal file. **This requires passwordless SSH access (e.g., via public key authentication) to be configured for the specified user.**
+- **Signaling**:
+  - `SIGNAL_SSH_*`: SSH connection details (`USER`, `HOST`, `PORT`, `KEY`) used by the client to connect to the server. **This requires passwordless SSH access (e.g., via public key authentication) to be configured for the specified user.**
 
 ## How to Run
 
