@@ -11,6 +11,7 @@ import datetime
 import socket
 import time
 import signal
+import psutil
 
 # ---------------- SETTINGS ---------------- #
 # --- General ---
@@ -113,6 +114,28 @@ def run_server_benchmark():
         server_process = subprocess.Popen(full_command, stderr=subprocess.PIPE, text=True)
         debug(f"'perf {os.path.basename(SERVER_BINARY)}' server started with PID: {server_process.pid}")
 
+        # Find the actual server binary process, which is a child of the 'perf' process
+        try:
+            perf_process = psutil.Process(server_process.pid)
+            # Wait a moment for the child process to spawn
+            time.sleep(1)
+            children = perf_process.children(recursive=True)
+            sshd_process = next((p for p in children if p.name() in os.path.basename(SERVER_BINARY)), None)
+
+            if not sshd_process:
+                raise RuntimeError("Could not find the sshd child process of perf.")
+
+            debug(f"Found server binary process with PID: {sshd_process.pid}")
+        except psutil.NoSuchProcess:
+            print("Error: Could not find perf process right after starting it.", file=sys.stderr)
+            server_process.kill()
+            sys.exit(1)
+        except RuntimeError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            server_process.kill()
+            sys.exit(1)
+
+
         # Loop to wait for the signal file
         while not os.path.exists(SIGNAL_FILE):
             time.sleep(1)
@@ -125,10 +148,11 @@ def run_server_benchmark():
 
         print("\n[INFO] Signal received to stop the server.")
 
-        # Send SIGINT to the perf process, which should forward it to the server binary
-        server_process.send_signal(signal.SIGINT)
+        # Send SIGKILL (kill -9) directly to the sshd process to ensure it dies
+        debug(f"Sending SIGKILL to server binary process with PID: {sshd_process.pid}")
+        sshd_process.kill()
 
-        # Wait for the process to terminate and capture its output
+        # Wait for the parent 'perf' process to terminate and capture its output
         server_process.wait(timeout=10)
         stderr_output = server_process.stderr.read()
         debug(f"Final perf stderr output:\n{stderr_output}")
