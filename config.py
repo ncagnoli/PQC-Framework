@@ -7,6 +7,8 @@ ITERATIONS = 1500
 RESULTS_DIR = "Results"
 # The file used by the client to signal the server to stop.
 SIGNAL_FILE = "/tmp/stop_server_perf"
+# This file will store the unique ID for a benchmark run, ensuring both client and server use the same output files.
+SESSION_ID_FILE = "/tmp/perf_benchmark_session.id"
 
 
 # --- Server Settings (`server_perf.py`) ---
@@ -29,8 +31,6 @@ CLIENT_ARGS = [
     "-p", str(PORT_TO_CHECK), "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
     "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", REMOTE_COMMAND
 ]
-# A friendly name for the test, used in the output filename.
-TEST_NAME = "mlkem768x25519-sha256"
 
 
 # --- Server Signaling SSH Configuration (`client_perf.py`) ---

@@ -36,19 +36,42 @@ def setup_results_dir():
 # This script no longer generates its own filename, it uses the one from config.
 # The parsing function is now in parsing_util.py
 
-def run_server_benchmark(iteration_number, output_filename):
+def get_session_id():
+    """Reads the session ID from the session file, retrying if it doesn't exist yet."""
+    retries = 5
+    for i in range(retries):
+        if os.path.exists(config.SESSION_ID_FILE):
+            with open(config.SESSION_ID_FILE, "r") as f:
+                session_id = f.read().strip()
+            if session_id:
+                debug(f"Read session ID: {session_id}")
+                return session_id
+        debug(f"Session file not found or empty. Retrying in 1 second... ({i+1}/{retries})")
+        time.sleep(1)
+    raise RuntimeError("Could not read session ID from file after multiple retries.")
+
+
+def run_server_benchmark(iteration_number):
     """
     Main function to run the target server binary under 'perf stat' and wait for a signal.
 
     Args:
         iteration_number (int): The current iteration number.
-        output_filename (str): The path to the CSV file for logging results.
     """
-    if is_port_in_use(config.PORT_TO_CHECK):
-        print(f"Error: Port {config.PORT_TO_CHECK} is already in use.", file=sys.stderr)
-        sys.exit(1)
+    if iteration_number == 0:
+        # Only check the port on the very first run to avoid race conditions
+        if is_port_in_use(config.PORT_TO_CHECK):
+            print(f"Error: Port {config.PORT_TO_CHECK} is already in use. Please free it up before starting.", file=sys.stderr)
+            sys.exit(1)
 
     setup_results_dir()
+
+    try:
+        session_id = get_session_id()
+        output_filename = os.path.join(config.RESULTS_DIR, f"server-results-{session_id}.csv")
+    except RuntimeError as e:
+        print(e, file=sys.stderr)
+        sys.exit(1)
 
     # Ensure no old signal file is present
     if os.path.exists(config.SIGNAL_FILE):
@@ -123,6 +146,7 @@ def run_server_benchmark(iteration_number, output_filename):
         metrics = parsing_util.parse_perf_output(stderr_output, iteration_number)
 
         # Append results to the single CSV file
+        # The header is written only if the file doesn't exist (first iteration)
         file_exists = os.path.exists(output_filename)
 
         with open(output_filename, "a", newline='') as f:
@@ -148,14 +172,13 @@ def run_server_benchmark(iteration_number, output_filename):
         print("Server has shut down.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: ./server_perf.py <iteration_number> <output_filename>", file=sys.stderr)
+    if len(sys.argv) != 2:
+        print("Usage: ./server_perf.py <iteration_number>", file=sys.stderr)
         sys.exit(1)
 
     try:
         iteration = int(sys.argv[1])
-        output_file = sys.argv[2]
-        run_server_benchmark(iteration, output_file)
+        run_server_benchmark(iteration)
     except ValueError:
         print("Error: Iteration number must be an integer.", file=sys.stderr)
         sys.exit(1)
