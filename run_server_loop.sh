@@ -3,6 +3,8 @@
 # This wrapper script runs a target server script (e.g., server_perf.py)
 # in a loop. It's designed to work with a client that signals the server
 # script to stop, allowing for iterative measurements.
+# --- FIX KEY PERMISSION ---
+chmod 600 server_keys/*
 
 # --- CONFIGURATION ---
 # The server script to run in a loop.

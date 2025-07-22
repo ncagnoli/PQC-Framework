@@ -3,6 +3,9 @@
 # This wrapper script runs a target client script (e.g., client_perf.py)
 # in a loop. It's designed to work with a client that signals the client
 # script to stop, allowing for iterative measurements.
+# --- FIX KEY PERMISSION ---
+chmod 600 client_keys/*
+
 
 # --- CONFIGURATION ---
 # The client script to run in a loop.

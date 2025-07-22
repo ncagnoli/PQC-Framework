@@ -33,14 +33,19 @@ SIGNAL_HOST = f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}"
 REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
 # The client binary that will be measured by perf.
 CLIENT_COMMAND = "ssh"
+# Algorithms to be used on KEY process
+KEY_TYPE = "ssh-rsa"
+# Command line for KEY
+KEY_ALGORITHMS = f"HostKeyAlgorithms={KEY_TYPE}"
 # Algorithms to be used on KEX process
 ALGORITHMS = "curve25519-sha256@libssh.org"
 # Command line for KEX
 KEX_ALGORITHMS = f"KexAlgorithms={ALGORITHMS}"
+
 # Arguments for the client binary.
 CLIENT_ARGS = [
     "-p", str(PORT_TO_CHECK), "-i", SIGNAL_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", KEX_ALGORITHMS, SIGNAL_HOST, REMOTE_COMMAND
+    "-o", KEY_ALGORITHMS, "-o", KEX_ALGORITHMS, SIGNAL_HOST, REMOTE_COMMAND
 ]
 # A friendly name for the test, used in the output filename.
 TEST_NAME = "Test-RSA-2048"
