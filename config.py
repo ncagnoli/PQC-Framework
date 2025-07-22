@@ -9,7 +9,6 @@ RESULTS_DIR = "Results"
 SIGNAL_FILE = "/tmp/stop_server_perf"
 
 # --- Server Settings (`server_perf.py`) ---
-
 # The server binary to be benchmarked.
 SERVER_BINARY = "/usr/sbin/sshd"
 # Arguments for the server binary. The config file path is referenced here.
@@ -18,13 +17,15 @@ SERVER_ARGS = ["-D", "-e", "-p", "2222", "-f", SERVER_CONFIG_FILE]
 # The port to check for availability before starting the server. 'None' to disable.
 PORT_TO_CHECK = 2222
 
-
 # --- Client Settings (`client_perf.py`) ---
+# These settings are used by the client to connect to the server for signaling.
+# In the current direct-signal workflow, these are only used if the main
+# client command is changed to not include the signaling.
 # The client configurations
 SIGNAL_SSH_USER = "testuser"
 SIGNAL_SSH_HOST = "10.10.10.242"
 SIGNAL_SSH_PORT = PORT_TO_CHECK
-SIGNAL_SSH_KEY = "/home/testuser/.ssh/id_rsa_2048"
+SIGNAL_SSH_KEY = "/root/experiment/client_keys/id_rsa_2048"
 
 SIGNAL_HOST = f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}"
 
@@ -43,17 +44,6 @@ CLIENT_ARGS = [
 ]
 # A friendly name for the test, used in the output filename.
 TEST_NAME = "Test-RSA-2048"
-
-
-# --- Server Signaling SSH Configuration (`client_perf.py`) ---
-# These settings are used by the client to connect to the server for signaling.
-# In the current direct-signal workflow, these are only used if the main
-# client command is changed to not include the signaling.
-SIGNAL_SSH_USER = "testuser"
-SIGNAL_SSH_HOST = "10.10.10.242"
-SIGNAL_SSH_PORT = PORT_TO_CHECK
-SIGNAL_SSH_KEY = "/home/testuser/.ssh/id_rsa_2048"
-
 
 # --- Graph Settings (`graph.py` and `dual_axis_graph.py`) ---
 # Default output filename for the single-axis plot.
