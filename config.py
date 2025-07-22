@@ -38,9 +38,9 @@ SIGNAL_HOST = f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}"
 CLIENT_ARGS = ["-D", "-e", "-p", "2222", "-f", SERVER_CONFIG_FILE]
 
 ssh_command = [
-    "ssh", "-p", str(config.SIGNAL_SSH_PORT), "-i", config.SIGNAL_SSH_KEY,
+    "ssh", "-p", str(SIGNAL_SSH_PORT), "-i", SIGNAL_SSH_KEY,
     "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
-    f"{config.SIGNAL_SSH_USER}@{config.SIGNAL_SSH_HOST}", command_str
+    f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}", command_str
 ]
 
 # The command to be executed on the remote server, which also acts as the signal.
