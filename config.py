@@ -8,8 +8,8 @@ RESULTS_DIR = "Results"
 # The file used by the client to signal the server to stop.
 SIGNAL_FILE = "/tmp/stop_server_perf"
 
-
 # --- Server Settings (`server_perf.py`) ---
+
 # The server binary to be benchmarked.
 SERVER_BINARY = "/usr/sbin/sshd"
 # Arguments for the server binary. The config file path is referenced here.
@@ -20,16 +20,26 @@ PORT_TO_CHECK = 2222
 
 
 # --- Client Settings (`client_perf.py`) ---
+# The client configurations
+SIGNAL_SSH_USER = "testuser"
+SIGNAL_SSH_HOST = "10.10.10.242"
+SIGNAL_SSH_PORT = PORT_TO_CHECK
+SIGNAL_SSH_KEY = "/home/testuser/.ssh/id_rsa_2048"
+
+SIGNAL_HOST = f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}"
+
 # The command to be executed on the remote server, which also acts as the signal.
 REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
 # The client binary that will be measured by perf.
 CLIENT_COMMAND = "ssh"
-# The client binary that will be measured by perf.
-KEX_ALGORITHMS = "curve25519-sha256@libssh.org"
+# Algorithms to be used on KEX process
+ALGORITHMS = "curve25519-sha256@libssh.org"
+# Command line for KEX
+KEX_ALGORITHMS = f"KexAlgorithms={ALGORITHMS}"
 # Arguments for the client binary.
 CLIENT_ARGS = [
-    "-p", str(PORT_TO_CHECK), "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", "KexAlgorithms=", KEX_ALGORITHMS, "test1@localhost", REMOTE_COMMAND
+    "-p", str(PORT_TO_CHECK), "-i", SIGNAL_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no",
+    "-o", KEX_ALGORITHMS, SIGNAL_HOST, REMOTE_COMMAND
 ]
 # A friendly name for the test, used in the output filename.
 TEST_NAME = "Test-RSA-2048"
