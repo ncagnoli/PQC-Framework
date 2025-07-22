@@ -2,11 +2,21 @@
 # Set to True to see detailed commands and outputs from the scripts.
 DEBUG_MODE = True
 # The number of times the client-server test iteration should run.
-ITERATIONS = 1500
+ITERATIONS = 15
 # Directory where the resulting CSV files will be stored.
 RESULTS_DIR = "Results"
 # The file used by the client to signal the server to stop.
 SIGNAL_FILE = "/tmp/stop_server_perf"
+
+# --- PERF Settings ---
+PERF_COMMAND = [
+    "perf", "stat", "-e",
+    "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
+]
+
+    server_command = [config.SERVER_BINARY] + config.SERVER_ARGS
+    full_command = perf_command + ["--"] + server_command
+
 
 # --- Server Settings (`server_perf.py`) ---
 # The server binary to be benchmarked.
@@ -28,6 +38,14 @@ SIGNAL_SSH_PORT = PORT_TO_CHECK
 SIGNAL_SSH_KEY = "/root/experiment/client_keys/id_rsa_2048"
 
 SIGNAL_HOST = f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}"
+
+CLIENT_ARGS = ["-D", "-e", "-p", "2222", "-f", SERVER_CONFIG_FILE]
+
+ssh_command = [
+    "ssh", "-p", str(config.SIGNAL_SSH_PORT), "-i", config.SIGNAL_SSH_KEY,
+    "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
+    f"{config.SIGNAL_SSH_USER}@{config.SIGNAL_SSH_HOST}", command_str
+]
 
 # The command to be executed on the remote server, which also acts as the signal.
 REMOTE_COMMAND = f"touch {SIGNAL_FILE}"

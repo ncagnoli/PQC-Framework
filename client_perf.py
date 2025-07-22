@@ -60,41 +60,13 @@ def cleanup_and_exit(signum, frame):
     print("\n[INFO] Interruption detected! Exiting script safely...")
     sys.exit(0)
 
-def signal_server(action):
-    """Creates or removes the signal file on the server via SSH."""
-    if action not in ["create", "remove"]:
-        raise ValueError("Action must be 'create' or 'remove'")
-
-    command_str = f"touch {config.SIGNAL_FILE}" if action == "create" else f"rm -f {config.SIGNAL_FILE}"
-
-    ssh_command = [
-        "ssh", "-p", str(config.SIGNAL_SSH_PORT), "-i", config.SIGNAL_SSH_KEY,
-        "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
-        f"{config.SIGNAL_SSH_USER}@{config.SIGNAL_SSH_HOST}", command_str
-    ]
-
-    debug(f"Signaling server ('{action}'): {' '.join(ssh_command)}")
-    try:
-        result = subprocess.run(ssh_command, timeout=10, check=True, capture_output=True, text=True)
-        debug(f"Signaling successful. Server output: {result.stdout}")
-        return True
-    except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
-        print(f"Error signaling server ('{action}'): {e}", file=sys.stderr)
-        if hasattr(e, 'stderr'):
-            print(f"Server stderr: {e.stderr}", file=sys.stderr)
-        return False
-
 def run_client_benchmark():
     """Main function to run the client-side performance benchmark."""
     setup_results_dir()
     output_file = generate_output_filename()
 
-    perf_command_base = [
-        "perf", "stat", "-e",
-        "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
-    ]
     client_connection_command = [config.CLIENT_COMMAND] + config.CLIENT_ARGS
-    full_perf_command = perf_command_base + ["--"] + client_connection_command
+    full_perf_command = config.PERF_COMMAND + ["--"] + client_connection_command
 
     file_exists = os.path.isfile(output_file)
     with open(output_file, "a", newline='') as f:

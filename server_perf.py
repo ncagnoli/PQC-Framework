@@ -90,12 +90,8 @@ def run_server_benchmark():
     if os.path.exists(config.SIGNAL_FILE):
         os.remove(config.SIGNAL_FILE)
 
-    perf_command = [
-        "perf", "stat", "-e",
-        "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
-    ]
     server_command = [config.SERVER_BINARY] + config.SERVER_ARGS
-    full_command = perf_command + ["--"] + server_command
+    full_command = config.PERF_COMMAND + ["--"] + server_command
 
     output_file = generate_output_filename()
 

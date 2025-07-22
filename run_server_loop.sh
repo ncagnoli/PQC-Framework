@@ -9,8 +9,8 @@ chmod 600 server_keys/*
 # --- CONFIGURATION ---
 # The server script to run in a loop.
 SERVER_SCRIPT="./server_perf.py"
-# Number of times to loop. Should be >= the client's ITERATIONS.
-LOOP_COUNT=1500
+# Number of times to loop.
+LOOP_COUNT=$(python3 -c "import config; print(config.ITERATIONS)")
 
 echo "Starting the server loop for '$SERVER_SCRIPT'..."
 for (( i=1; i<=LOOP_COUNT; i++ ))
@@ -26,6 +26,6 @@ do
     fi
 
     echo "--- Server script finished. Restarting in .5 seconds... ---"
-    sleep .5
+    sleep .3
 done
 echo "Server loop finished."

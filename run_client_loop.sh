@@ -6,12 +6,11 @@
 # --- FIX KEY PERMISSION ---
 chmod 600 client_keys/*
 
-
 # --- CONFIGURATION ---
 # The client script to run in a loop.
 CLIENT_SCRIPT="./client_perf.py"
-# Number of times to loop. Should be >= the server's ITERATIONS.
-LOOP_COUNT=1500
+# Number of times to loop.
+LOOP_COUNT=$(python3 -c "import config; print(config.ITERATIONS)")
 
 echo "Starting the client loop for '$CLIENT_SCRIPT'..."
 for (( i=1; i<=LOOP_COUNT; i++ ))
@@ -27,6 +26,6 @@ do
     fi
 
     echo "--- Client script finished. Restarting in .5 seconds... ---"
-    sleep .5
+    sleep .3
 done
 echo "Client loop finished."

@@ -18,13 +18,15 @@ This repository contains a set of Python scripts designed to measure and analyze
 
 - **`run_server_loop.sh`**: This script runs the `server_perf.py` script in a loop, allowing for continuous testing.
 
+- **`run_client_loop.sh`**: This script runs the `client_perf.py` script in a loop, allowing for continuous testing.
+
 ### Usage
 
 1. **Configure the tests**: Edit the `config.py` file to set the desired parameters for the server and client.
 
 2. **Run the server**: Execute the `run_server_loop.sh` script to start the server in a loop.
 
-3. **Run the client**: Execute the `client_perf.py` script to start the client and begin the performance tests.
+3. **Run the client**: Execute the `run_client_loop.sh` script to start the client and begin the performance tests.
 
 4. **Generate the graphs**: Use the `graph.py` or `dual_axis_graph.py` scripts to generate plots from the resulting CSV files.
 
@@ -46,12 +48,14 @@ Este repositório contém um conjunto de scripts Python projetados para medir e 
 
 - **`run_server_loop.sh`**: Este script executa o script `server_perf.py` em um loop, permitindo testes contínuos.
 
+- **`run_client_loop.sh`**: Este script executa o script `client_perf.py` em um loop, permitindo testes contínuos.
+
 ### Uso
 
 1. **Configure os testes**: Edite o arquivo `config.py` para definir os parâmetros desejados para o servidor e o cliente.
 
 2. **Execute o servidor**: Execute o script `run_server_loop.sh` para iniciar o servidor em um loop.
 
-3. **Execute o cliente**: Execute o script `client_perf.py` para iniciar o cliente e começar os testes de desempenho.
+3. **Execute o cliente**: Execute o script `run_server_loop.sh` para iniciar o cliente e começar os testes de desempenho.
 
 4. **Gere os gráficos**: Use os scripts `graph.py` ou `dual_axis_graph.py` para gerar gráficos a partir dos arquivos CSV resultantes.
