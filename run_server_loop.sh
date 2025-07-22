@@ -25,7 +25,7 @@ do
         break
     fi
 
-    echo "--- Server script finished. Restarting in 2 seconds... ---"
-    sleep 2
+    echo "--- Server script finished. Restarting in .5 seconds... ---"
+    sleep .5
 done
 echo "Server loop finished."

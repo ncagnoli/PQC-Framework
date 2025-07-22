@@ -21,7 +21,8 @@ def setup_results_dir():
 
 def generate_output_filename():
     """Generates a unique filename for the output CSV."""
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # Nome de arquivo só com data (YYYYMMDD), hostname e TEST_NAME, para facilitar append
+    timestamp = datetime.datetime.now().strftime("%Y%m%d")
     hostname = socket.gethostname()
     return os.path.join(config.RESULTS_DIR, f"{hostname}-{timestamp}-client-{config.TEST_NAME}.csv")
 
@@ -95,46 +96,44 @@ def run_client_benchmark():
     client_connection_command = [config.CLIENT_COMMAND] + config.CLIENT_ARGS
     full_perf_command = perf_command_base + ["--"] + client_connection_command
 
-    with open(output_file, "w", newline='') as f:
+    file_exists = os.path.isfile(output_file)
+    with open(output_file, "a", newline='') as f:
         writer = csv.writer(f)
-        writer.writerow([
-            "iteration", "cycles", "instructions", "cache-misses", "branch-misses",
-            "page-faults", "context-switches", "cpu-migrations"
-        ])
+        if not file_exists:
+            writer.writerow([
+                "iteration", "timestamp", "cycles", "instructions", "cache-misses", "branch-misses",
+                "page-faults", "context-switches", "cpu-migrations"
+            ])
         
         for i in range(config.ITERATIONS):
             print(f"\n--- Starting Iteration {i} ---")
 
-            # A short pause to allow the server to restart from the previous iteration.
-            # The server is responsible for cleaning up the old signal file upon its startup.
+            # Pausa para garantir o servidor pronto entre iterações
             time.sleep(2)
 
-            # Measure the performance of the client's SSH connection.
-            # The command itself will create the signal file on the server.
             print("Running perf on the client to connect and signal the server...")
             perf_output, return_code = execute_perf_on_client(full_perf_command)
 
-            # A non-zero return code from SSH might be expected if the server
-            # shuts down the connection very quickly after the command is sent.
-            # We can consider the operation successful if perf ran.
             if "Timeout" in perf_output:
-                 print(f"Client measurement timed out. Retrying...")
-                 continue
+                print(f"Client measurement timed out. Retrying...")
+                continue
 
             print("Client measurement captured!")
             metrics = parse_perf_output(perf_output)
             metrics["iteration"] = i
             writer.writerow([
-                metrics["iteration"], metrics["cycles"], metrics["instructions"], metrics["cache-misses"],
+                metrics["iteration"], datetime.datetime.now().isoformat(), metrics["cycles"], metrics["instructions"], metrics["cache-misses"],
                 metrics["branch-misses"], metrics["page-faults"], metrics["context-switches"], metrics["cpu-migrations"]
             ])
 
             print(f"--- Finished Iteration {i} ---")
+
+    print(f"\n[INFO] Todos os resultados foram adicionados em: {output_file}")
 
 if __name__ == "__main__":
     # Set up signal handlers for graceful exit
     signal.signal(signal.SIGINT, cleanup_and_exit)
     signal.signal(signal.SIGTERM, cleanup_and_exit)
 
-    print(f"Starting client tests. Results will be saved to: {generate_output_filename()}")
+    print(f"Starting client tests. Results will be appended to: {generate_output_filename()}")
     run_client_benchmark()
