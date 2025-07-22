@@ -65,7 +65,7 @@ def run_client_benchmark():
     setup_results_dir()
     output_file = generate_output_filename()
 
-    client_connection_command = [config.CLIENT_COMMAND] + config.CLIENT_ARGS
+    client_connection_command = [config.CLIENT_BINARY] + config.CLIENT_ARGS
     full_perf_command = config.PERF_COMMAND + ["--"] + client_connection_command
 
     file_exists = os.path.isfile(output_file)

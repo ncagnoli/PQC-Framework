@@ -28,25 +28,14 @@ PORT_TO_CHECK = 2222
 # In the current direct-signal workflow, these are only used if the main
 # client command is changed to not include the signaling.
 # The client configurations
-SIGNAL_SSH_USER = "testuser"
-SIGNAL_SSH_HOST = "10.10.10.242"
-SIGNAL_SSH_PORT = PORT_TO_CHECK
-SIGNAL_SSH_KEY = "/root/experiment/client_keys/id_rsa_2048"
-
-SIGNAL_HOST = f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}"
-
-CLIENT_ARGS = ["-D", "-e", "-p", "2222", "-f", SERVER_CONFIG_FILE]
-
-ssh_command = [
-    "ssh", "-p", str(SIGNAL_SSH_PORT), "-i", SIGNAL_SSH_KEY,
-    "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
-    f"{SIGNAL_SSH_USER}@{SIGNAL_SSH_HOST}", command_str
-]
+CLIENT_BINARY = "/usr/bin/ssh"
+CLIENT_SSH_USER = "testuser"
+CLIENT_SSH_HOST = "10.10.10.242"
+CLIENT_SSH_PORT = PORT_TO_CHECK
+CLIENT_SSH_KEY = "/root/experiment/client_keys/id_rsa_2048"
 
 # The command to be executed on the remote server, which also acts as the signal.
 REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
-# The client binary that will be measured by perf.
-CLIENT_COMMAND = "ssh"
 # Algorithms to be used on KEY process
 KEY_TYPE = "ssh-rsa"
 # Command line for KEY
@@ -55,11 +44,12 @@ KEY_ALGORITHMS = f"HostKeyAlgorithms={KEY_TYPE}"
 ALGORITHMS = "curve25519-sha256@libssh.org"
 # Command line for KEX
 KEX_ALGORITHMS = f"KexAlgorithms={ALGORITHMS}"
-
+# Host to connect user@host
+CLIENT_HOST = f"{CLIENT_SSH_USER}@{CLIENT_SSH_HOST}"
 # Arguments for the client binary.
 CLIENT_ARGS = [
-    "-p", str(PORT_TO_CHECK), "-i", SIGNAL_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no", 
-    "-o", "StrictHostKeyChecking=no", "-o", KEY_ALGORITHMS, "-o", KEX_ALGORITHMS, SIGNAL_HOST,
+    "-p", str(PORT_TO_CHECK), "-i", CLIENT_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no", 
+    "-o", "StrictHostKeyChecking=no", "-o", KEY_ALGORITHMS, "-o", KEX_ALGORITHMS, f"{CLIENT_SSH_USER}@{CLIENT_SSH_HOST}",
     REMOTE_COMMAND
 ]
 
