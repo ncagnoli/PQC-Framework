@@ -45,7 +45,7 @@ def generate_output_filename():
     config_path = get_config_from_args(config.SERVER_ARGS)
     config_filename = os.path.basename(config_path) if config_path else "generic"
     hostname = socket.gethostname()
-    return os.path.join(config.RESULTS_DIR, f"{hostname}-{timestamp}-server-{config_filename}.csv")
+    return os.path.join(config.RESULTS_DIR, f"{hostname}-{timestamp}-server-{config.TEST_NAME}-{config_filename}.csv")
 
 def parse_perf_output(output):
     """Parses the stderr output from 'perf stat' to extract metrics."""
