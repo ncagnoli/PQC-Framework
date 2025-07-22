@@ -44,9 +44,11 @@ KEX_ALGORITHMS = f"KexAlgorithms={ALGORITHMS}"
 
 # Arguments for the client binary.
 CLIENT_ARGS = [
-    "-p", str(PORT_TO_CHECK), "-i", SIGNAL_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", KEY_ALGORITHMS, "-o", KEX_ALGORITHMS, SIGNAL_HOST, REMOTE_COMMAND
+    "-p", str(PORT_TO_CHECK), "-i", SIGNAL_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no", 
+    "-o", "StrictHostKeyChecking=no", "-o", KEY_ALGORITHMS, "-o", KEX_ALGORITHMS, SIGNAL_HOST,
+    REMOTE_COMMAND
 ]
+
 # A friendly name for the test, used in the output filename.
 TEST_NAME = "Test-RSA-2048"
 
