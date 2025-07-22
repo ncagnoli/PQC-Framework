@@ -24,10 +24,12 @@ PORT_TO_CHECK = 2222
 REMOTE_COMMAND = f"touch {SIGNAL_FILE}"
 # The client binary that will be measured by perf.
 CLIENT_COMMAND = "ssh"
+# The client binary that will be measured by perf.
+KEX_ALGORITHMS = "curve25519-sha256@libssh.org"
 # Arguments for the client binary.
 CLIENT_ARGS = [
     "-p", str(PORT_TO_CHECK), "-i", "id_rsa", "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", REMOTE_COMMAND
+    "-o", "KexAlgorithms=", KEX_ALGORITHMS, "test1@localhost", REMOTE_COMMAND
 ]
 # A friendly name for the test, used in the output filename.
 TEST_NAME = "Test-RSA-2048"
