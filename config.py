@@ -13,7 +13,7 @@ SIGNAL_FILE = "/tmp/stop_server_perf"
 # The server binary to be benchmarked.
 SERVER_BINARY = "/usr/sbin/sshd"
 # Arguments for the server binary. The config file path is referenced here.
-SERVER_CONFIG_FILE = "sshd_config_default"
+SERVER_CONFIG_FILE = "/root/experiment/sshd_config/sshd_config_t_rsa_2048"
 SERVER_ARGS = ["-D", "-e", "-p", "2222", "-f", SERVER_CONFIG_FILE]
 # The port to check for availability before starting the server. 'None' to disable.
 PORT_TO_CHECK = 2222
@@ -30,17 +30,17 @@ CLIENT_ARGS = [
     "-o", "KexAlgorithms=mlkem768x25519-sha256", "test1@localhost", REMOTE_COMMAND
 ]
 # A friendly name for the test, used in the output filename.
-TEST_NAME = "mlkem768x25519-sha256"
+TEST_NAME = "Test-RSA-2048"
 
 
 # --- Server Signaling SSH Configuration (`client_perf.py`) ---
 # These settings are used by the client to connect to the server for signaling.
 # In the current direct-signal workflow, these are only used if the main
 # client command is changed to not include the signaling.
-SIGNAL_SSH_USER = "test1"
-SIGNAL_SSH_HOST = "localhost"
+SIGNAL_SSH_USER = "testuser"
+SIGNAL_SSH_HOST = "10.10.10.242"
 SIGNAL_SSH_PORT = PORT_TO_CHECK
-SIGNAL_SSH_KEY = "id_rsa"
+SIGNAL_SSH_KEY = "/home/testuser/.ssh/id_rsa_2048"
 
 
 # --- Graph Settings (`graph.py` and `dual_axis_graph.py`) ---

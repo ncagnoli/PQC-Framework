@@ -1,5 +1,5 @@
 # Chave do host RSA 4096
-HostKey /root/server_keys/ssh_host_rsa_4096_key
+HostKey /root/experiment/server_keys/ssh_host_rsa_4096_key
 HostKeyAlgorithms ssh-rsa
 
 # Troca de chaves (KEX)
