@@ -14,10 +14,6 @@ PERF_COMMAND = [
     "cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations"
 ]
 
-    server_command = [config.SERVER_BINARY] + config.SERVER_ARGS
-    full_command = perf_command + ["--"] + server_command
-
-
 # --- Server Settings (`server_perf.py`) ---
 # The server binary to be benchmarked.
 SERVER_BINARY = "/usr/sbin/sshd"
