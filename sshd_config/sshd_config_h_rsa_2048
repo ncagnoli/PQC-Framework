@@ -3,7 +3,7 @@ HostKey /root/experiment/server_keys/ssh_host_rsa_2048_key
 HostKeyAlgorithms ssh-rsa
 
 # Troca de chaves (KEX) – mais moderna/tradicional atualmente aceita
-KexAlgorithms curve25519-sha256@libssh.org
+KexAlgorithms sntrup761x25519-sha512@openssh.com
 
 # Cifra e MAC seguros
 Ciphers chacha20-poly1305@openssh.com
