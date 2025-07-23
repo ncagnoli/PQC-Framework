@@ -1,0 +1,17 @@
+# Chave do host RSA 2048
+HostKey /root/experiment/server_keys/ssh_host_rsa_2048_key
+HostKeyAlgorithms ssh-rsa
+
+# Troca de chaves (KEX) – mais moderna/tradicional atualmente aceita
+KexAlgorithms curve25519-sha256@libssh.org
+
+# Cifra e MAC seguros
+Ciphers chacha20-poly1305@openssh.com
+MACs hmac-sha2-256
+
+# Segurança e controle
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+Compression no
+
