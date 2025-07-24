@@ -41,7 +41,7 @@ def get_config_from_args(args):
 
 def generate_output_filename():
     """Generates a unique filename for the output CSV based on timestamp, hostname, and config."""
-    timestamp = datetime.datetime.now().strftime("%Y%m")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d")
     config_path = get_config_from_args(config.SERVER_ARGS)
     config_filename = os.path.basename(config_path) if config_path else "generic"
     hostname = socket.gethostname()

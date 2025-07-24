@@ -100,7 +100,7 @@ def run_client_benchmark():
 
             print(f"--- Finished Iteration {i} ---")
 
-    print(f"\n[INFO] Todos os resultados foram adicionados em: {output_file}")
+    print(f"\n[INFO] All results have been appended to: {output_file}")
 
 if __name__ == "__main__":
     # Set up signal handlers for graceful exit

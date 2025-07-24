@@ -56,6 +56,6 @@ Este repositório contém um conjunto de scripts Python projetados para medir e 
 
 2. **Execute o servidor**: Execute o script `run_server_loop.sh` para iniciar o servidor em um loop.
 
-3. **Execute o cliente**: Execute o script `run_server_loop.sh` para iniciar o cliente e começar os testes de desempenho.
+3. **Execute o cliente**: Execute o script `run_client_loop.sh` para iniciar o cliente e começar os testes de desempenho.
 
 4. **Gere os gráficos**: Use os scripts `graph.py` ou `dual_axis_graph.py` para gerar gráficos a partir dos arquivos CSV resultantes.
