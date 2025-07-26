@@ -1,0 +1,15 @@
+# Chave do host Sphics 2128
+HostKey /root/experiment/server_keys/ssh_host_sphincssha2128fsimple_key
+HostKeyAlgorithms ssh-sphincssha2128fsimple
+
+# Troca de chaves (KEX)
+KexAlgorithms mlkem1024-sha384
+
+# Cifra e MAC seguros
+Ciphers chacha20-poly1305@openssh.com
+MACs hmac-sha2-256
+
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+Compression no

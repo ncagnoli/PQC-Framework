@@ -1,0 +1,15 @@
+# Chave do host ML-DSA 87
+HostKey /root/experiment/server_keys/ssh_host_mldsa87_key
+HostKeyAlgorithms ssh-mldsa87
+
+# Troca de chaves (KEX)
+KexAlgorithms mlkem1024-sha384
+
+# Cifra e MAC seguros
+Ciphers chacha20-poly1305@openssh.com
+MACs hmac-sha2-256
+
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+Compression no

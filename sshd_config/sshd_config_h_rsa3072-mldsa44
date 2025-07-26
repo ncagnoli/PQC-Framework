@@ -1,0 +1,15 @@
+# Chave do host RSA + MLDS (3072+44)
+HostKey /root/experiment/server_keys/ssh_host_rsa3072-mldsa44_key
+HostKeyAlgorithms ssh-rsa3072-mldsa44
+
+# Troca de chaves (KEX)
+KexAlgorithms mlkem768x25519-sha256
+
+# Cifra e MAC seguros
+Ciphers chacha20-poly1305@openssh.com
+MACs hmac-sha2-256
+
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+Compression no
