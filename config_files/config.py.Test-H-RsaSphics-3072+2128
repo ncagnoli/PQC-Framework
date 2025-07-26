@@ -31,8 +31,8 @@ ALGORITHMS = "mlkem768x25519-sha256"
 KEX_ALGORITHMS = f"KexAlgorithms={ALGORITHMS}"
 CLIENT_HOST = f"{CLIENT_SSH_USER}@{CLIENT_SSH_HOST}"
 CLIENT_ARGS = [
-    "-p", str(PORT_TO_CHECK), "-i", CLIENT_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no",
-    "-o", "StrictHostKeyChecking=no", "-o", KEY_ALGORITHMS, "-o", PUBKEY_ALGORITHMS, "-o", KEX_ALGORITHMS, f"{CLIENT_SSH_USER}@{CLIENT_SSH_HOST}",
+    "-p", str(PORT_TO_CHECK),"-i", CLIENT_SSH_KEY, "-o", "BatchMode=yes", "-o", "ForwardX11=no",
+    "-o", "StrictHostKeyChecking=no", "-o", KEY_ALGORITHMS, "-o", PUBKEY_ALGORITHMS, "-o", "UserKnownHostsFile=/dev/null", "-o", KEX_ALGORITHMS, f"{CLIENT_SSH_USER}@{CLIENT_SSH_HOST}",
     REMOTE_COMMAND
 ]
 
