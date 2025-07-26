@@ -1,6 +1,6 @@
 # --- General Settings ---
 DEBUG_MODE = True
-ITERATIONS = 15
+ITERATIONS = 5
 RESULTS_DIR = "Results"
 SIGNAL_FILE = "/tmp/stop_server_perf"
 
