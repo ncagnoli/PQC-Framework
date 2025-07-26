@@ -24,7 +24,7 @@ for config_file in "$CONFIG_DIR"/*; do
     echo "Created symlink: $LINK_NAME -> $config_file"
 
     # Execute the desired script (uncomment only one of the lines below)
-    ./run_run_server_loop.sh
+    ./run_server_loop.sh
     # ./run_client_loop.sh
 
     # Wait for user confirmation before continuing
