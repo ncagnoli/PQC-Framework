@@ -1,6 +1,7 @@
 # Chave do host RSA 2048
 HostKey /root/experiment/server_keys/ssh_host_rsa_2048_key
 HostKeyAlgorithms ssh-rsa
+PubkeyAcceptedAlgorithms ssh-rsa
 
 # Troca de chaves (KEX) – mais moderna/tradicional atualmente aceita
 KexAlgorithms curve25519-sha256@libssh.org

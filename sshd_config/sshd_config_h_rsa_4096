@@ -1,6 +1,7 @@
 # Chave do host RSA 4096
 HostKey /root/experiment/server_keys/ssh_host_rsa_4096_key
 HostKeyAlgorithms ssh-rsa
+PubkeyAcceptedAlgorithms ssh-rsa
 
 # Troca de chaves (KEX)
 KexAlgorithms sntrup761x25519-sha512@openssh.com

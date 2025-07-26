@@ -1,6 +1,7 @@
 # Chave do host Sphics 2256
 HostKey /root/experiment/server_keys/ssh_host_sphincssha2256fsimple_key
 HostKeyAlgorithms ssh-sphincssha2256fsimple
+PubkeyAcceptedAlgorithms ssh-sphincssha2256fsimple
 
 # Troca de chaves (KEX)
 KexAlgorithms mlkem1024-sha384

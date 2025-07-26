@@ -1,6 +1,7 @@
 # Chave do host Falcon 512
 HostKey /root/experiment/server_keys/ssh_host_falcon512_key
 HostKeyAlgorithms ssh-falcon512
+PubkeyAcceptedAlgorithms ssh-falcon512
 
 # Troca de chaves (KEX)
 KexAlgorithms mlkem1024-sha384

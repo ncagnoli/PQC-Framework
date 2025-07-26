@@ -1,6 +1,7 @@
 # Chave do host RSA + Falcon (3072 + 512)
 HostKey /root/experiment/server_keys/ssh_host_rsa3072_falcon512_key
 HostKeyAlgorithms ssh-rsa3072-falcon512
+PubkeyAcceptedAlgorithms ssh-rsa3072-falcon512
 
 # Troca de chaves (KEX)
 KexAlgorithms mlkem768x25519-sha256

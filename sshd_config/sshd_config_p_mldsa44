@@ -1,6 +1,7 @@
 # Chave do host ML-DSA 44
 HostKey /root/experiment/server_keys/ssh_host_mldsa44_key
 HostKeyAlgorithms ssh-mldsa44
+PubkeyAcceptedAlgorithms ssh-mldsa44
 
 # Troca de chaves (KEX)
 KexAlgorithms mlkem1024-sha384

@@ -1,6 +1,7 @@
 # Chave do host ML-DSA 65
 HostKey /root/experiment/server_keys/ssh_host_mldsa65_key
 HostKeyAlgorithms ssh-mldsa65
+PubkeyAcceptedAlgorithms ssh-mldsa65
 
 # Troca de chaves (KEX)
 KexAlgorithms mlkem1024-sha384

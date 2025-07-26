@@ -1,6 +1,7 @@
 # Chave do host RSA + Sphics (3072+2128)
 HostKey /root/experiment/server_keys/ssh_host_rsa3072_sphincssha2128fsimple_key
 HostKeyAlgorithms ssh-rsa3072-sphincssha2128fsimple
+PubkeyAcceptedAlgorithms ssh-rsa3072-sphincssha2128fsimple
 
 # Troca de chaves (KEX)
 KexAlgorithms mlkem768x25519-sha256
