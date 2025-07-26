@@ -30,8 +30,9 @@ for config_file in "$CONFIG_DIR"/*; do
     # Wait for user confirmation before continuing
     echo
     echo "=== Execution finished for $config_file ==="
-    echo "Press ENTER to continue to the next one..."
-    read -r
+    echo "Sleeping to continue to the next one..."
+    sleep 5 # For server mode
+    #sleep 20 # For client mode
     echo
 done
 
