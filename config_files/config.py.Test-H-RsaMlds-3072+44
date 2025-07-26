@@ -11,13 +11,13 @@ PERF_COMMAND = [
 ]
 
 # --- Server Settings ---
-SERVER_BINARY = "/usr/sbin/sshd"
+SERVER_BINARY = "/usr/sbin/sshd-pqc"
 SERVER_CONFIG_FILE = "/root/experiment/sshd_config/sshd_config_h_rsa3072_mldsa44"
 SERVER_ARGS = ["-D", "-e", "-p", "2222", "-f", SERVER_CONFIG_FILE]
 PORT_TO_CHECK = 2222
 
 # --- Client Settings ---
-CLIENT_BINARY = "/usr/bin/ssh"
+CLIENT_BINARY = "/usr/bin/ssh-pqc"
 CLIENT_SSH_USER = "testuser"
 CLIENT_SSH_HOST = "10.10.10.242"
 CLIENT_SSH_PORT = PORT_TO_CHECK
