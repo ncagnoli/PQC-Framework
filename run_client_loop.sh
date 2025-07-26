@@ -5,6 +5,7 @@
 # script to stop, allowing for iterative measurements.
 # --- FIX KEY PERMISSION ---
 chmod 600 client_keys/*
+rm -rf __pycache__
 
 # --- CONFIGURATION ---
 # The client script to run in a loop.
