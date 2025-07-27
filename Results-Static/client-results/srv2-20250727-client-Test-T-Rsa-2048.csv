@@ -1,4 +1,4 @@
-iteration,timestamp,cycles,instructions,cache-misses,branch-misses,page-faults,context-switches,cpu-migrations
+iteration,timestamp,cycles,instructions,cache_misses,branch_misses,page_faults,context_switches,cpu_migrations
 0,2025-07-27T03:30:14.512586,33654484,73969193,37954,138860,499,13,0
 1,2025-07-27T03:30:16.764889,32847245,73941512,36423,138430,499,12,0
 2,2025-07-27T03:30:18.996855,32869197,73957946,31166,136415,499,12,0
