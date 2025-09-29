@@ -36,7 +36,7 @@ CLIENT_ARGS = [
     REMOTE_COMMAND
 ]
 
-TEST_NAME = "Test-NH-Rsa-2048"
+TEST_NAME = "Test-NH-Rsa-3072"
 
 # --- Graph Settings ---
 DEFAULT_SINGLE_AXIS_PLOT_OUTPUT = "performance_plot.html"
