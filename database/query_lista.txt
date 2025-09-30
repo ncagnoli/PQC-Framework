@@ -1,0 +1,84 @@
+1)
+-- Distinct test runs (one row per run with key metadata)
+SELECT DISTINCT
+  test_run_id,
+  test_type,
+  openssh_branch,
+  key_label
+FROM pqc_results
+ORDER BY test_run_id;
+
+
+2)
+-- Distinct client CSV files by run
+SELECT DISTINCT
+  test_run_id,
+  source_file
+FROM pqc_results
+WHERE role = 'client'
+ORDER BY test_run_id, source_file;
+
+
+3)
+SELECT
+  test_run_id,
+  role,
+  test_type,
+  COUNT(DISTINCT iteration) AS n_iterations
+FROM pqc_results
+GROUP BY test_run_id, role, test_type
+ORDER BY test_run_id, role, test_type;
+
+
+4-)
+
+-- One row per test (run) with test-type specifics and client/server summaries
+SELECT
+  r.test_run_id,
+  r.test_type,                 -- classical | pqc | hybrid
+  r.openssh_branch,
+  r.key_type_primary,
+  r.key_size_primary,
+  r.key_type_secondary,
+  r.key_size_secondary,
+  r.key_label,
+
+  COUNT(*) AS n_rows_total,    -- total rows in this run (both roles)
+  SUM(CASE WHEN r.role='client' THEN 1 ELSE 0 END) AS n_rows_client,
+  SUM(CASE WHEN r.role='server' THEN 1 ELSE 0 END) AS n_rows_server,
+
+  COUNT(DISTINCT IF(r.role='client', r.iteration, NULL)) AS n_iters_client,
+  COUNT(DISTINCT IF(r.role='server', r.iteration, NULL)) AS n_iters_server,
+
+  MIN(IF(r.role='client', r.iteration, NULL)) AS min_it_client,
+  MAX(IF(r.role='client', r.iteration, NULL)) AS max_it_client,
+  MIN(IF(r.role='server', r.iteration, NULL)) AS min_it_server,
+  MAX(IF(r.role='server', r.iteration, NULL)) AS max_it_server,
+
+  GROUP_CONCAT(DISTINCT IF(r.role='client', r.source_file, NULL)
+               ORDER BY r.source_file SEPARATOR ', ') AS client_files,
+  GROUP_CONCAT(DISTINCT IF(r.role='server', r.source_file, NULL)
+               ORDER BY r.source_file SEPARATOR ', ') AS server_files
+FROM pqc_results r
+GROUP BY
+  r.test_run_id,
+  r.test_type,
+  r.openssh_branch,
+  r.key_type_primary, r.key_size_primary,
+  r.key_type_secondary, r.key_size_secondary,
+  r.key_label
+ORDER BY
+  CAST(r.test_run_id AS UNSIGNED), r.test_type, r.openssh_branch;
+
+
+
+Dados estatisticos
+
+  Media
+  Desvio Padrão
+  Mediana
+  Max/Min
+
+  
+
+
