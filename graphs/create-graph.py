@@ -359,7 +359,7 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
                 xref="x", yref="paper",
                 x0=division_x, x1=division_x,
                 y0=0, y1=1,
-                line=dict(color="rgba(0,0,0,0.3)", width=1.5, dash="dash")
+                line=dict(color="rgba(0,0,0,0.3)", width=0, dash="dash")
             )
     
     # Layout
@@ -454,44 +454,44 @@ fig.write_image("cenario_1_IeB.png")
 print("✓ Cenário 1")
 
 # CENÁRIO 2
-fig = create_chart(2, [2, 9], "Cenário 2 - Clássico vs KEX PQC", "CeI")
+fig = create_chart(2, [2, 9], "Cenário 2 - Clássico com KEX PQC Simples", "CeI")
 fig.write_image("cenario_2_CeI.png")
-fig = create_chart(2, [2, 9], "Cenário 2 - Clássico vs KEX PQC", "IeB")
+fig = create_chart(2, [2, 9], "Cenário 2 - Clássico com KEX PQC Simples", "IeB")
 fig.write_image("cenario_2_IeB.png")
 print("✓ Cenário 2")
 
 # CENÁRIO 3
-fig = create_chart(3, [3, 4, 10, 11], "Cenário 3 - Clássico vs KEX PQC", "CeI")
+fig = create_chart(3, [3, 4, 10, 11], "Cenário 3 - Clássico com KEX PQC Multiplo", "CeI")
 fig.write_image("cenario_3_CeI.png")
-fig = create_chart(3, [3, 4, 10, 11], "Cenário 3 - Clássico vs KEX PQC", "IeB")
+fig = create_chart(3, [3, 4, 10, 11], "Cenário 3 - Clássico com KEX PQC Multiplo", "IeB")
 fig.write_image("cenario_3_IeB.png")
 print("✓ Cenário 3")
 
 # CENÁRIO 4 - Aumentado para acomodar 6 barras
-fig = create_chart(4, [5, 6, 7, 8, 10, 11], "Cenário 4 - Clássicos com KEX PQC", "CeI", width=1800, height=900)
+fig = create_chart(4, [5, 6, 7, 8, 10, 11], "Cenário 4 - Comparativo SNTRUP vs ML-KEM", "CeI", width=1800, height=900)
 fig.write_image("cenario_4_CeI.png")
-fig = create_chart(4, [5, 6, 7, 8, 10, 11], "Cenário 4 - Clássicos com KEX PQC", "IeB", width=1800, height=900)
+fig = create_chart(4, [5, 6, 7, 8, 10, 11], "Cenário 4 - Comparativo SNTRUP vs ML-KEM", "IeB", width=1800, height=900)
 fig.write_image("cenario_4_IeB.png")
 print("✓ Cenário 4")
 
 # CENÁRIO 5
-fig = create_chart(5, [9, 12, 15], "Cenário 5 - RSA+FALCON", "CeI")
+fig = create_chart(5, [9, 12, 15], "Cenário 5 - Composicão RSA, RSA+Falcon, Falcon", "CeI")
 fig.write_image("cenario_5_CeI.png")
-fig = create_chart(5, [9, 12, 15], "Cenário 5 - RSA+FALCON", "IeB")
+fig = create_chart(5, [9, 12, 15], "Cenário 5 - Composicão RSA, RSA+Falcon, Falcon", "IeB")
 fig.write_image("cenario_5_IeB.png")
 print("✓ Cenário 5")
 
 # CENÁRIO 6
-fig = create_chart(6, [9, 14, 17], "Cenário 6 - RSA+SPHINCS", "CeI")
+fig = create_chart(6, [9, 14, 17], "Cenário 6 - Composicão RSA, RSA+SPHINCS, SPHINCS", "CeI")
 fig.write_image("cenario_6_CeI.png")
-fig = create_chart(6, [9, 14, 17], "Cenário 6 - RSA+SPHINCS", "IeB")
+fig = create_chart(6, [9, 14, 17], "Cenário 6 - Composicão RSA, RSA+SPHINCS, SPHINCS", "IeB")
 fig.write_image("cenario_6_IeB.png")
 print("✓ Cenário 6")
 
 # CENÁRIO 7
-fig = create_chart(7, [9, 13, 19], "Cenário 7 - RSA+ML-DSA", "CeI")
+fig = create_chart(7, [9, 13, 19], "Cenário 7 - Composicão RSA, RSA+ML-DSA, ML-DSA", "CeI")
 fig.write_image("cenario_7_CeI.png")
-fig = create_chart(7, [9, 13, 19], "Cenário 7 - RSA+ML-DSA", "IeB")
+fig = create_chart(7, [9, 13, 19], "Cenário 7 - Composicão RSA, RSA+ML-DSA, ML-DSA", "IeB")
 fig.write_image("cenario_7_IeB.png")
 print("✓ Cenário 7")
 
@@ -510,37 +510,37 @@ fig.write_image("cenario_9_IeB.png")
 print("✓ Cenário 9")
 
 # CENÁRIO 10
-fig = create_chart(10, [17, 20], "Cenário 10 - PQC Chaves Maiores", "CeI")
+fig = create_chart(10, [17, 20], "Cenário 10 - PQC Chaves Intermediárias", "CeI")
 fig.write_image("cenario_10_CeI.png")
-fig = create_chart(10, [17, 20], "Cenário 10 - PQC Chaves Maiores", "IeB")
+fig = create_chart(10, [17, 20], "Cenário 10 - PQC Chaves Intermediárias", "IeB")
 fig.write_image("cenario_10_IeB.png")
 print("✓ Cenário 10")
 
 # CENÁRIO 11
-fig = create_chart(11, [16, 18, 21], "Cenário 11 - PQC Chaves Grandes", "CeI")
+fig = create_chart(11, [16, 18, 21], "Cenário 11 - PQC Chaves Maiores", "CeI")
 fig.write_image("cenario_11_CeI.png")
-fig = create_chart(11, [16, 18, 21], "Cenário 11 - PQC Chaves Grandes", "IeB")
+fig = create_chart(11, [16, 18, 21], "Cenário 11 - PQC Chaves Maiores", "IeB")
 fig.write_image("cenario_11_IeB.png")
 print("✓ Cenário 11")
 
 # CENÁRIO 12
-fig = create_chart(12, [15, 16], "Cenário 12 - FALCON Tamanhos", "CeI")
+fig = create_chart(12, [15, 16], "Cenário 12 - Falcon diferentes tamanhos", "CeI")
 fig.write_image("cenario_12_CeI.png")
-fig = create_chart(12, [15, 16], "Cenário 12 - FALCON Tamanhos", "IeB")
+fig = create_chart(12, [15, 16], "Cenário 12 - Falcon diferentes tamanhos", "IeB")
 fig.write_image("cenario_12_IeB.png")
 print("✓ Cenário 12")
 
 # CENÁRIO 13
-fig = create_chart(13, [17, 18], "Cenário 13 - SPHINCS Tamanhos", "CeI")
+fig = create_chart(13, [17, 18], "Cenário 13 - SPHINCS diferentes tamanhos", "CeI")
 fig.write_image("cenario_13_CeI.png")
-fig = create_chart(13, [17, 18], "Cenário 13 - SPHINCS Tamanhos", "IeB")
+fig = create_chart(13, [17, 18], "Cenário 13 - SPHINCS diferentes tamanhos", "IeB")
 fig.write_image("cenario_13_IeB.png")
 print("✓ Cenário 13")
 
 # CENÁRIO 14
-fig = create_chart(14, [19, 20, 21], "Cenário 14 - ML-DSA Tamanhos", "CeI")
+fig = create_chart(14, [19, 20, 21], "Cenário 14 - ML-DSA diferentes tamanhos", "CeI")
 fig.write_image("cenario_14_CeI.png")
-fig = create_chart(14, [19, 20, 21], "Cenário 14 - ML-DSA Tamanhos", "IeB")
+fig = create_chart(14, [19, 20, 21], "Cenário 14 - ML-DSA diferentes tamanhos", "IeB")
 fig.write_image("cenario_14_IeB.png")
 print("✓ Cenário 14")
 
