@@ -1,0 +1,189 @@
+
+
+% Cenário 3
+
+
+% Cenário 4
+\begin{table}[htbp]\centering
+\caption{Cenário 4: descrição das configurações dos testes}
+\label{tab:cen4-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo & HostKeyAlgorithms & Tamanho \\
+\hline
+5  & 9.2  & Hibrida & \texttt{ssh-rsa}     & 2048 \\
+6  & 9.2  & Hibrida & \texttt{ssh-rsa}     & 4096 \\
+7  & 9.2  & Hibrida & \texttt{ssh-ed25519} & 256  \\
+8  & 10.0 & Hibrida & \texttt{ssh-rsa}     & 2048 \\
+10 & 10.0 & Hibrida & \texttt{ssh-rsa}     & 4096 \\
+11 & 10.0 & Hibrida & \texttt{ssh-ed25519} & 256  \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 5
+\begin{table}[htbp]\centering
+\caption{Cenário 5: descrição das configurações dos testes}
+\label{tab:cen5-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo   & HostKeyAlgorithms                 & Tamanho \\
+\hline
+9  & 10.0 & Hibrida & \texttt{ssh-rsa}                    & 3072 \\
+12 & 9.7  & Hibrida & \texttt{ssh-rsa3072-falcon512}      & 3072+512 \\
+15 & 9.7  & PQC     & \texttt{ssh-falcon512}              & 512 \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 6
+\begin{table}[htbp]\centering
+\caption{Cenário 6: descrição das configurações dos testes}
+\label{tab:cen6-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo   & HostKeyAlgorithms                            & Tamanho \\
+\hline
+9  & 10.0 & Hibrida & \texttt{ssh-rsa}                                 & 3072 \\
+14 & 9.7  & Hibrida & \texttt{ssh-rsa3072-sphincssha2128fsimple}       & 3072+2128 \\
+17 & 9.7  & PQC     & \texttt{ssh-sphincssha2128fsimple}               & 2128 \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 7
+\begin{table}[htbp]\centering
+\caption{Cenário 7: descrição das configurações dos testes}
+\label{tab:cen7-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo   & HostKeyAlgorithms            & Tamanho \\
+\hline
+9  & 10.0 & Hibrida & \texttt{ssh-rsa}               & 3072 \\
+13 & 9.7  & Hibrida & \texttt{ssh-rsa3072-mldsa44}   & 3072+44 \\
+19 & 9.7  & PQC     & \texttt{ssh-mldsa44}           & 44 \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 8
+\begin{table}[htbp]\centering
+\caption{Cenário 8: descrição das configurações dos testes}
+\label{tab:cen8-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo   & HostKeyAlgorithms & Tamanho \\
+\hline
+1  & 9.2 & Clássica & \texttt{ssh-rsa}        & 2048 \\
+15 & 9.7 & PQC      & \texttt{ssh-falcon512}  & 512  \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 9
+\begin{table}[htbp]\centering
+\caption{Cenário 9: descrição das configurações dos testes}
+\label{tab:cen9-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo & HostKeyAlgorithms & Tamanho \\
+\hline
+15 & 9.7 & PQC & \texttt{ssh-falcon512} & 512 \\
+19 & 9.7 & PQC & \texttt{ssh-mldsa44}   & 44  \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 10
+\begin{table}[htbp]\centering
+\caption{Cenário 10: descrição das configurações dos testes}
+\label{tab:cen10-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo & HostKeyAlgorithms              & Tamanho \\
+\hline
+17 & 9.7 & PQC & \texttt{ssh-sphincssha2128fsimple} & 2128 \\
+20 & 9.7 & PQC & \texttt{ssh-mldsa65}               & 65   \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 11
+\begin{table}[htbp]\centering
+\caption{Cenário 11: descrição das configurações dos testes}
+\label{tab:cen11-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo & HostKeyAlgorithms                & Tamanho \\
+\hline
+16 & 9.7 & PQC & \texttt{ssh-falcon1024}              & 1024 \\
+18 & 9.7 & PQC & \texttt{ssh-sphincssha2256fsimple}   & 2256 \\
+21 & 9.7 & PQC & \texttt{ssh-mldsa87}                 & 87   \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 12
+\begin{table}[htbp]\centering
+\caption{Cenário 12: descrição das configurações dos testes}
+\label{tab:cen12-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo & HostKeyAlgorithms   & Tamanho \\
+\hline
+15 & 9.7 & PQC & \texttt{ssh-falcon512}  & 512  \\
+16 & 9.7 & PQC & \texttt{ssh-falcon1024} & 1024 \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 13
+\begin{table}[htbp]\centering
+\caption{Cenário 13: descrição das configurações dos testes}
+\label{tab:cen13-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo & HostKeyAlgorithms                & Tamanho \\
+\hline
+17 & 9.7 & PQC & \texttt{ssh-sphincssha2128fsimple}   & 2128 \\
+18 & 9.7 & PQC & \texttt{ssh-sphincssha2256fsimple}   & 2256 \\
+\hline
+\end{tabular}
+\end{table}
+
+% Cenário 14
+\begin{table}[htbp]\centering
+\caption{Cenário 14: descrição das configurações dos testes}
+\label{tab:cen14-config}
+\small
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Teste & OpenSSH & Tipo & HostKeyAlgorithms & Tamanho \\
+\hline
+19 & 9.7 & PQC & \texttt{ssh-mldsa44} & 44 \\
+20 & 9.7 & PQC & \texttt{ssh-mldsa65} & 65 \\
+21 & 9.7 & PQC & \texttt{ssh-mldsa87} & 87 \\
+\hline
+\end{tabular}
+\end{table}
