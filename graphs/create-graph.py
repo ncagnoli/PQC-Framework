@@ -109,6 +109,29 @@ DATA = {
 }
 
 # ============================================
+# 1.1. CÁLCULO DAS ESCALAS MÁXIMAS GLOBAIS
+# ============================================
+MAX_CYCLES = 0
+MAX_INSTRUCTIONS = 0
+MAX_IPC = 0
+MAX_BPC = 0
+
+for t_data in DATA.values():
+    for role in ["client", "server"]:
+        metrics = t_data[role]
+        if metrics["cycles"] > MAX_CYCLES: MAX_CYCLES = metrics["cycles"]
+        if metrics["instructions"] > MAX_INSTRUCTIONS: MAX_INSTRUCTIONS = metrics["instructions"]
+        if metrics["ipc"] > MAX_IPC: MAX_IPC = metrics["ipc"]
+        if metrics["bpc"] > MAX_BPC: MAX_BPC = metrics["bpc"]
+
+# Adicionar margem de 10%
+PAD_FACTOR = 1.1
+MAX_CYCLES *= PAD_FACTOR
+MAX_INSTRUCTIONS *= PAD_FACTOR
+MAX_IPC *= PAD_FACTOR
+MAX_BPC *= PAD_FACTOR
+
+# ============================================
 # 2. DESCRIÇÕES COMPLETAS (para legenda)
 # ============================================
 TEST_DESCRIPTIONS = {
@@ -418,6 +441,14 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
             align="center"
         )
     
+    # Definir range fixo
+    if chart_type == "CeI":
+        y1_range = [0, MAX_CYCLES]
+        y2_range = [0, MAX_INSTRUCTIONS]
+    else:
+        y1_range = [0, MAX_IPC]
+        y2_range = [0, MAX_BPC]
+
     # Eixos Y
     fig.update_yaxes(
         title_text=f"<b>{y1_label}</b>",  # Negrito
@@ -427,7 +458,8 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
         zeroline=False,
         gridcolor="rgba(0,0,0,0.08)",
         showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)",
-        tickfont=dict(size=font_axis_tick)
+        tickfont=dict(size=font_axis_tick),
+        range=y1_range
     )
     fig.update_yaxes(
         title_text=f"<b>{y2_label}</b>",  # Negrito
@@ -437,7 +469,8 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
         zeroline=False,
         showgrid=True,
         showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)",
-        tickfont=dict(size=font_axis_tick)
+        tickfont=dict(size=font_axis_tick),
+        range=y2_range
     )
     
     return fig
