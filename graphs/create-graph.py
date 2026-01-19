@@ -109,7 +109,36 @@ DATA = {
 }
 
 # ============================================
-# 2. DESCRIÇÕES COMPLETAS (para legenda)
+# 1.1 CALCULAR MÁXIMOS GLOBAIS (IGNORANDO SNTRUP)
+# ============================================
+SNTRUP_IDS = [5, 6, 7]
+
+_all_cycles = []
+_all_instructions = []
+_all_ipc = []
+_all_bpc = []
+
+# Varre todos os dados, MAS PULA SNTRUP
+for t_id in DATA:
+    if t_id in SNTRUP_IDS:
+        continue  # Ignora SNTRUP no cálculo da escala global
+        
+    for role in ["client", "server"]:
+        _all_cycles.append(DATA[t_id][role]["cycles"])
+        _all_instructions.append(DATA[t_id][role]["instructions"])
+        _all_ipc.append(DATA[t_id][role]["ipc"])
+        _all_bpc.append(DATA[t_id][role]["bpc"])
+
+# Define máximos com margem de segurança
+GLOBAL_MAX_CYCLES = max(_all_cycles) * 1.15
+GLOBAL_MAX_INSTRUCTIONS = max(_all_instructions) * 1.15
+GLOBAL_MAX_IPC = max(_all_ipc) * 1.15
+GLOBAL_MAX_BPC = max(_all_bpc) * 1.15
+
+print(f"Escala Global Fixa (sem SNTRUP): Cycles={GLOBAL_MAX_CYCLES:.1e}, Instr={GLOBAL_MAX_INSTRUCTIONS:.1e}")
+
+# ============================================
+# 2. DESCRIÇÕES COMPLETAS
 # ============================================
 TEST_DESCRIPTIONS = {
     1: "RSA 2048 (Clássico)",
@@ -142,31 +171,37 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
                  font_title=32, font_axis_title=26, font_axis_tick=18, 
                  font_bar_label=16, font_group_label=22, font_legend=16,
                  width=1200, height=800):
-    """
-    Cria gráfico personalizado
     
-    Args:
-        scenario_num: número do cenário (para nome do arquivo)
-        tests: lista de test IDs (ex: [1, 2, 3, 4])
-        title: título do gráfico
-        chart_type: "CeI" ou "IeB"
-        font_*: tamanhos de fonte ajustáveis
-        width, height: dimensões da imagem
-    """
+    # Verificar se este gráfico contém SNTRUP
+    has_sntrup = any(t_id in SNTRUP_IDS for t_id in tests)
     
-    # Definir métricas e labels
+    # Se tiver SNTRUP, usa escala automática (None). 
+    # Se não, usa a escala global calculada anteriormente.
     if chart_type == "CeI":
         metric_left = "cycles"
         metric_right = "instructions"
         y1_label, y2_label = "Cycles", "Instructions"
         decimal_places = 0
-        show_text = True  # Mostrar valores nas barras
+        
+        if has_sntrup:
+            y1_range = None # Automático
+            y2_range = None # Automático
+        else:
+            y1_range = [0, GLOBAL_MAX_CYCLES]
+            y2_range = [0, GLOBAL_MAX_INSTRUCTIONS]
+            
     else:  # IeB
         metric_left = "ipc"
         metric_right = "bpc"
         y1_label, y2_label = "IPC", "BPC"
         decimal_places = 4
-        show_text = True  # Mostrar valores nas barras
+        
+        if has_sntrup:
+            y1_range = None
+            y2_range = None
+        else:
+            y1_range = [0, GLOBAL_MAX_IPC]
+            y2_range = [0, GLOBAL_MAX_BPC]
     
     # Construir dados do gráfico
     groups_data = []
@@ -187,31 +222,25 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
                 bars.append((test_id, value))
             groups_data.append({"group": group_name, "bars": bars, "axis": axis})
     
-    # Cores suaves (paleta Safe do Plotly)
+    # Cores
     group_palette = px.colors.qualitative.Safe
     group_colors = {gd["group"]: group_palette[i % len(group_palette)] for i, gd in enumerate(groups_data)}
     
-    # Posicionamento com ESPAÇAMENTO MAIOR entre grupos
-    GROUP_SPACING = 1.2  # Aumentado de 0.8 para 1.2
+    # Posicionamento
+    GROUP_SPACING = 1.2
     group_centers = {gd["group"]: i * GROUP_SPACING for i, gd in enumerate(groups_data)}
     
-    # Calcular offsets baseado no número de barras
     num_bars = len(tests)
     if num_bars == 2:
-        offsets = [-0.18, 0.18]
-        bar_width = 0.28
+        offsets = [-0.18, 0.18]; bar_width = 0.28
     elif num_bars == 3:
-        offsets = [-0.24, 0.0, 0.24]
-        bar_width = 0.22
+        offsets = [-0.24, 0.0, 0.24]; bar_width = 0.22
     elif num_bars == 4:
-        offsets = [-0.30, -0.10, 0.10, 0.30]
-        bar_width = 0.18
+        offsets = [-0.30, -0.10, 0.10, 0.30]; bar_width = 0.18
     elif num_bars == 6:
-        offsets = [-0.40, -0.24, -0.08, 0.08, 0.24, 0.40]
-        bar_width = 0.14
+        offsets = [-0.40, -0.24, -0.08, 0.08, 0.24, 0.40]; bar_width = 0.14
     else:
-        offsets = [-0.30, -0.10, 0.10, 0.30]
-        bar_width = 0.18
+        offsets = [-0.30, -0.10, 0.10, 0.30]; bar_width = 0.18
     
     first_group = groups_data[0]["group"]
     last_group = groups_data[-1]["group"]
@@ -220,55 +249,26 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
     PAD = 0.15
     xmin, xmax = leftmost - PAD, rightmost + PAD
     
-    # Criar figura
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     x_tickvals, x_ticktext = [], []
     
-    # Adicionar backgrounds coloridos - DOIS BLOCOS GRANDES
-    # Bloco 1 (Azul): Client Cycles + Server Cycles (eixo esquerdo)
-    # Bloco 2 (Verde): Client Instructions/IPC + Server Instructions/BPC (eixo direito)
+    # Backgrounds
+    c1 = group_centers[groups_data[0]["group"]]
+    c2 = group_centers[groups_data[1]["group"]]
+    c3 = group_centers[groups_data[2]["group"]]
+    c4 = group_centers[groups_data[3]["group"]]
     
-    # Identificar quais grupos usam eixo esquerdo (índices 0 e 1)
-    # e quais usam eixo direito (índices 2 e 3)
+    b1_left = c1 + min(offsets) - bar_width/2 - 0.08
+    b1_right = (c2 + c3) / 2
+    fig.add_shape(type="rect", xref="x", yref="paper", x0=b1_left, x1=b1_right, y0=0, y1=1,
+                  fillcolor="rgba(173, 216, 230, 0.15)", line=dict(width=0), layer="below")
     
-    # Calcular limites do primeiro bloco - EIXO ESQUERDO (grupos 0 e 1)
-    first_group_center = group_centers[groups_data[0]["group"]]
-    second_group_center = group_centers[groups_data[1]["group"]]
-    third_group_center = group_centers[groups_data[2]["group"]]
+    b2_left = (c2 + c3) / 2
+    b2_right = c4 + max(offsets) + bar_width/2 + 0.08
+    fig.add_shape(type="rect", xref="x", yref="paper", x0=b2_left, x1=b2_right, y0=0, y1=1,
+                  fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0), layer="below")
     
-    # Bloco azul vai do início até o meio entre grupo 1 e 2
-    block1_left = first_group_center + min(offsets) - bar_width/2 - 0.08
-    block1_right = (second_group_center + third_group_center) / 2  # Até o meio
-    
-    fig.add_shape(
-        type="rect",
-        xref="x", yref="paper",
-        x0=block1_left, x1=block1_right,
-        y0=0, y1=1,
-        fillcolor="rgba(173, 216, 230, 0.15)",  # Azul claro
-        line=dict(width=0),
-        layer="below"
-    )
-    
-    # Calcular limites do segundo bloco - EIXO DIREITO (grupos 2 e 3)
-    fourth_group_center = group_centers[groups_data[3]["group"]]
-    
-    # Bloco verde vai do meio até o final
-    block2_left = (second_group_center + third_group_center) / 2  # Do meio
-    block2_right = fourth_group_center + max(offsets) + bar_width/2 + 0.08
-    
-    fig.add_shape(
-        type="rect",
-        xref="x", yref="paper",
-        x0=block2_left, x1=block2_right,
-        y0=0, y1=1,
-        fillcolor="rgba(144, 238, 144, 0.15)",  # Verde claro
-        line=dict(width=0),
-        layer="below"
-    )
-    
-    # Adicionar barras
-    legend_added = set()  # Controle para adicionar legenda apenas uma vez
+    legend_added = set()
     
     for gi, gd in enumerate(groups_data):
         gname = gd["group"]
@@ -279,269 +279,111 @@ def create_chart(scenario_num, tests, title, chart_type="CeI",
         for idx, (test_id, value) in enumerate(gd["bars"]):
             x_pos = cx + offsets[idx % len(offsets)]
             x_tickvals.append(x_pos)
-            x_ticktext.append(f"({test_id})")  # Usando parênteses
+            x_ticktext.append(f"({test_id})")
             
-            # Formatar valor usando a função
             text_val = format_number(value, decimal_places)
-            
-            # Nome completo para legenda
             legend_name = f"<b>({test_id}) {TEST_DESCRIPTIONS[test_id]}</b>"
             
-            # Adicionar barra (sem mostrar na legenda)
             fig.add_trace(
                 go.Bar(
                     x=[x_pos], y=[value], width=[bar_width],
-                    name=legend_name,
-                    legendgroup=f"test{test_id}",
-                    showlegend=False,  # Não mostrar barras na legenda
-                    marker=dict(
-                        color=gcolor,
-                        line=dict(width=0)
-                    ),
-                    text=[text_val], 
-                    textposition="outside", 
-                    cliponaxis=False,
+                    name=legend_name, legendgroup=f"test{test_id}", showlegend=False,
+                    marker=dict(color=gcolor, line=dict(width=0)),
+                    text=[text_val], textposition="outside", cliponaxis=False,
                     textfont=dict(size=font_bar_label),
                     hovertemplate=f"<b>Teste ({test_id})</b><br>{TEST_DESCRIPTIONS[test_id]}<br>Grupo: {gname}<br>Valor: %{{y}}<extra></extra>",
                 ),
                 secondary_y=use_right
             )
             
-            # Adicionar entrada de legenda apenas texto (primeira vez)
             if test_id not in legend_added:
                 legend_added.add(test_id)
                 fig.add_trace(
                     go.Scatter(
-                        x=[None], y=[None],
-                        mode='markers',
-                        marker=dict(size=0, color='rgba(0,0,0,0)'),  # Marcador invisível
-                        showlegend=True,
-                        name=legend_name,
-                        legendgroup=f"test{test_id}",
-                        hoverinfo='skip'
+                        x=[None], y=[None], mode='markers',
+                        marker=dict(size=0, color='rgba(0,0,0,0)'),
+                        showlegend=True, name=legend_name, legendgroup=f"test{test_id}", hoverinfo='skip'
                     ),
                     secondary_y=False
                 )
             
             # Linha tracejada
             if use_right:
-                fig.add_shape(
-                    type="line", xref="x", yref="y2",
-                    x0=x_pos, x1=xmax, y0=value, y1=value,
-                    line=dict(dash="dot", width=2, color=gcolor)
-                )
+                fig.add_shape(type="line", xref="x", yref="y2", x0=x_pos, x1=xmax, y0=value, y1=value,
+                              line=dict(dash="dot", width=2, color=gcolor))
             else:
-                fig.add_shape(
-                    type="line", xref="x", yref="y",
-                    x0=xmin, x1=x_pos, y0=value, y1=value,
-                    line=dict(dash="dot", width=2, color=gcolor)
-                )
+                fig.add_shape(type="line", xref="x", yref="y", x0=xmin, x1=x_pos, y0=value, y1=value,
+                              line=dict(dash="dot", width=2, color=gcolor))
     
-    # Adicionar linhas divisórias verticais entre grandes grupos
+    # Divisórias
     for i in range(1, len(groups_data)):
-        prev_center = group_centers[groups_data[i-1]["group"]]
-        curr_center = group_centers[groups_data[i]["group"]]
-        division_x = (prev_center + curr_center) / 2
-        
-        # Linha central (entre blocos azul e verde) - mais escura
-        if i == 2:  # Linha central entre grupo 1 e 2 (entre eixo esquerdo e direito)
-            fig.add_shape(
-                type="line",
-                xref="x", yref="paper",
-                x0=division_x, x1=division_x,
-                y0=0, y1=1,
-                line=dict(color="rgba(0,0,0,0.45)", width=2, dash="dash")  # Mais escura e grossa
-            )
-        else:
-            # Outras linhas divisórias (normais)
-            fig.add_shape(
-                type="line",
-                xref="x", yref="paper",
-                x0=division_x, x1=division_x,
-                y0=0, y1=1,
-                line=dict(color="rgba(0,0,0,0.3)", width=0, dash="dash")
-            )
+        p = group_centers[groups_data[i-1]["group"]]
+        c = group_centers[groups_data[i]["group"]]
+        div_x = (p + c) / 2
+        line_style = dict(color="rgba(0,0,0,0.45)", width=2, dash="dash") if i == 2 else dict(color="rgba(0,0,0,0.3)", width=0, dash="dash")
+        fig.add_shape(type="line", xref="x", yref="paper", x0=div_x, x1=div_x, y0=0, y1=1, line=line_style)
     
     # Layout
     fig.update_layout(
-        title=dict(
-            text=f"<b>{title}</b>",  # Negrito no título
-            x=0.5, xanchor="center",
-            font=dict(size=font_title, family="Inter, Segoe UI, Roboto, Arial")
-        ),
-        template="plotly_white",
-        bargap=0.06,
-        margin=dict(l=70, r=70, t=90, b=180),  # Reduzido de 340 para 180
-        plot_bgcolor="rgba(250,250,252,1)",
-        paper_bgcolor="white",
-        legend=dict(
-            orientation="h",  # Horizontal
-            x=0.5, xanchor="center",
-            y=-0.12, yanchor="top",  # Ajustado de -0.20 para -0.12
-            font=dict(size=font_legend, weight='bold'),  # Negrito
-            bgcolor="rgba(255,255,255,0.95)",
-            bordercolor="rgba(0,0,0,0.5)",  # Borda mais escura (era 0.1)
-            borderwidth=1.5,  # Borda um pouco mais grossa
-            itemsizing='constant',
-            tracegroupgap=10,
-            itemwidth=30,
-            itemclick=False,  # Desabilita clique
-            itemdoubleclick=False  # Desabilita duplo clique
-        ),
-        showlegend=True,
-        uniformtext_minsize=9,
-        uniformtext_mode="hide",
-        width=width,
-        height=height
+        title=dict(text=f"<b>{title}</b>", x=0.5, xanchor="center", font=dict(size=font_title)),
+        template="plotly_white", bargap=0.06,
+        margin=dict(l=70, r=70, t=90, b=180),
+        plot_bgcolor="rgba(250,250,252,1)", paper_bgcolor="white",
+        legend=dict(orientation="h", x=0.5, xanchor="center", y=-0.12, yanchor="top",
+                    font=dict(size=font_legend, weight='bold'), bgcolor="rgba(255,255,255,0.95)",
+                    bordercolor="rgba(0,0,0,0.5)", borderwidth=1.5, itemwidth=30),
+        width=width, height=height
     )
     
-    # Eixo X
-    fig.update_xaxes(
-        range=[xmin, xmax],
-        tickvals=x_tickvals,
-        ticktext=x_ticktext,
-        tickfont=dict(size=font_axis_tick),
-        automargin=True,
-        showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)"
-    )
+    fig.update_xaxes(range=[xmin, xmax], tickvals=x_tickvals, ticktext=x_ticktext,
+                     tickfont=dict(size=font_axis_tick), showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)")
     
-    # Anotações dos grupos
     for gd in groups_data:
-        cx = group_centers[gd["group"]]
-        fig.add_annotation(
-            x=cx, xref="x",
-            y=0, yref="paper",
-            text=f"<b>{gd['group']}</b>",
-            showarrow=False,
-            yshift=-60,  # Ajustado para -60
-            font=dict(size=font_group_label, color="rgba(0,0,0,0.75)"),
-            align="center"
-        )
+        fig.add_annotation(x=group_centers[gd["group"]], xref="x", y=0, yref="paper", text=f"<b>{gd['group']}</b>",
+                           showarrow=False, yshift=-60, font=dict(size=font_group_label, color="rgba(0,0,0,0.75)"))
     
-    # Eixos Y
-    fig.update_yaxes(
-        title_text=f"<b>{y1_label}</b>",  # Negrito
-        secondary_y=False,
-        title_font=dict(size=font_axis_title),
-        title_standoff=12,
-        zeroline=False,
-        gridcolor="rgba(0,0,0,0.08)",
-        showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)",
-        tickfont=dict(size=font_axis_tick)
-    )
-    fig.update_yaxes(
-        title_text=f"<b>{y2_label}</b>",  # Negrito
-        secondary_y=True,
-        title_font=dict(size=font_axis_title),
-        title_standoff=12,
-        zeroline=False,
-        showgrid=True,
-        showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)",
-        tickfont=dict(size=font_axis_tick)
-    )
+    # Eixos Y (Lógica do Range)
+    fig.update_yaxes(title_text=f"<b>{y1_label}</b>", secondary_y=False, range=y1_range,
+                     title_font=dict(size=font_axis_title), showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)",
+                     tickfont=dict(size=font_axis_tick))
+    
+    fig.update_yaxes(title_text=f"<b>{y2_label}</b>", secondary_y=True, range=y2_range,
+                     title_font=dict(size=font_axis_title), showline=True, linewidth=1.4, linecolor="rgba(0,0,0,0.6)",
+                     tickfont=dict(size=font_axis_tick))
     
     return fig
 
 # ============================================
-# 4. GERAR TODOS OS CENÁRIOS
+# 4. GERAR GRÁFICOS
 # ============================================
 
-# CENÁRIO 1
-fig = create_chart(1, [1, 2, 3, 4], "Cenário 1 - Algoritmos Clássicos", "CeI")
-fig.write_image("cenario_1_CeI.png")
-fig = create_chart(1, [1, 2, 3, 4], "Cenário 1 - Algoritmos Clássicos", "IeB")
-fig.write_image("cenario_1_IeB.png")
-print("✓ Cenário 1")
+scenarios = [
+    (1, [1, 2, 3, 4], "Cenário 1 - Algoritmos Clássicos"),
+    (2, [2, 9], "Cenário 2 - Clássico com KEX PQC Simples"),
+    (3, [3, 4, 10, 11], "Cenário 3 - Clássico com KEX PQC Multiplo"),
+    (4, [5, 6, 7, 8, 10, 11], "Cenário 4 - Comparativo SNTRUP vs ML-KEM", 1800, 900),
+    (5, [9, 12, 15], "Cenário 5 - Composicão RSA, RSA+Falcon, Falcon"),
+    (6, [9, 14, 17], "Cenário 6 - Composicão RSA, RSA+SPHINCS, SPHINCS"),
+    (7, [9, 13, 19], "Cenário 7 - Composicão RSA, RSA+ML-DSA, ML-DSA"),
+    (8, [1, 15], "Cenário 8 - Alto Desempenho"),
+    (9, [15, 19], "Cenário 9 - PQC Chaves Menores"),
+    (10, [17, 20], "Cenário 10 - PQC Chaves Intermediárias"),
+    (11, [16, 18, 21], "Cenário 11 - PQC Chaves Maiores"),
+    (12, [15, 16], "Cenário 12 - Falcon diferentes tamanhos"),
+    (13, [17, 18], "Cenário 13 - SPHINCS diferentes tamanhos"),
+    (14, [19, 20, 21], "Cenário 14 - ML-DSA diferentes tamanhos"),
+]
 
-# CENÁRIO 2
-fig = create_chart(2, [2, 9], "Cenário 2 - Clássico com KEX PQC Simples", "CeI")
-fig.write_image("cenario_2_CeI.png")
-fig = create_chart(2, [2, 9], "Cenário 2 - Clássico com KEX PQC Simples", "IeB")
-fig.write_image("cenario_2_IeB.png")
-print("✓ Cenário 2")
+for s in scenarios:
+    s_num, tests, title = s[0], s[1], s[2]
+    w, h = (s[3], s[4]) if len(s) > 3 else (1200, 800)
+    
+    print(f"Gerando Cenário {s_num}...")
+    
+    fig = create_chart(s_num, tests, title, "CeI", width=w, height=h)
+    fig.write_image(f"cenario_{s_num}_CeI.png")
+    
+    fig = create_chart(s_num, tests, title, "IeB", width=w, height=h)
+    fig.write_image(f"cenario_{s_num}_IeB.png")
 
-# CENÁRIO 3
-fig = create_chart(3, [3, 4, 10, 11], "Cenário 3 - Clássico com KEX PQC Multiplo", "CeI")
-fig.write_image("cenario_3_CeI.png")
-fig = create_chart(3, [3, 4, 10, 11], "Cenário 3 - Clássico com KEX PQC Multiplo", "IeB")
-fig.write_image("cenario_3_IeB.png")
-print("✓ Cenário 3")
-
-# CENÁRIO 4 - Aumentado para acomodar 6 barras
-fig = create_chart(4, [5, 6, 7, 8, 10, 11], "Cenário 4 - Comparativo SNTRUP vs ML-KEM", "CeI", width=1800, height=900)
-fig.write_image("cenario_4_CeI.png")
-fig = create_chart(4, [5, 6, 7, 8, 10, 11], "Cenário 4 - Comparativo SNTRUP vs ML-KEM", "IeB", width=1800, height=900)
-fig.write_image("cenario_4_IeB.png")
-print("✓ Cenário 4")
-
-# CENÁRIO 5
-fig = create_chart(5, [9, 12, 15], "Cenário 5 - Composicão RSA, RSA+Falcon, Falcon", "CeI")
-fig.write_image("cenario_5_CeI.png")
-fig = create_chart(5, [9, 12, 15], "Cenário 5 - Composicão RSA, RSA+Falcon, Falcon", "IeB")
-fig.write_image("cenario_5_IeB.png")
-print("✓ Cenário 5")
-
-# CENÁRIO 6
-fig = create_chart(6, [9, 14, 17], "Cenário 6 - Composicão RSA, RSA+SPHINCS, SPHINCS", "CeI")
-fig.write_image("cenario_6_CeI.png")
-fig = create_chart(6, [9, 14, 17], "Cenário 6 - Composicão RSA, RSA+SPHINCS, SPHINCS", "IeB")
-fig.write_image("cenario_6_IeB.png")
-print("✓ Cenário 6")
-
-# CENÁRIO 7
-fig = create_chart(7, [9, 13, 19], "Cenário 7 - Composicão RSA, RSA+ML-DSA, ML-DSA", "CeI")
-fig.write_image("cenario_7_CeI.png")
-fig = create_chart(7, [9, 13, 19], "Cenário 7 - Composicão RSA, RSA+ML-DSA, ML-DSA", "IeB")
-fig.write_image("cenario_7_IeB.png")
-print("✓ Cenário 7")
-
-# CENÁRIO 8
-fig = create_chart(8, [1, 15], "Cenário 8 - Alto Desempenho", "CeI")
-fig.write_image("cenario_8_CeI.png")
-fig = create_chart(8, [1, 15], "Cenário 8 - Alto Desempenho", "IeB")
-fig.write_image("cenario_8_IeB.png")
-print("✓ Cenário 8")
-
-# CENÁRIO 9
-fig = create_chart(9, [15, 19], "Cenário 9 - PQC Chaves Menores", "CeI")
-fig.write_image("cenario_9_CeI.png")
-fig = create_chart(9, [15, 19], "Cenário 9 - PQC Chaves Menores", "IeB")
-fig.write_image("cenario_9_IeB.png")
-print("✓ Cenário 9")
-
-# CENÁRIO 10
-fig = create_chart(10, [17, 20], "Cenário 10 - PQC Chaves Intermediárias", "CeI")
-fig.write_image("cenario_10_CeI.png")
-fig = create_chart(10, [17, 20], "Cenário 10 - PQC Chaves Intermediárias", "IeB")
-fig.write_image("cenario_10_IeB.png")
-print("✓ Cenário 10")
-
-# CENÁRIO 11
-fig = create_chart(11, [16, 18, 21], "Cenário 11 - PQC Chaves Maiores", "CeI")
-fig.write_image("cenario_11_CeI.png")
-fig = create_chart(11, [16, 18, 21], "Cenário 11 - PQC Chaves Maiores", "IeB")
-fig.write_image("cenario_11_IeB.png")
-print("✓ Cenário 11")
-
-# CENÁRIO 12
-fig = create_chart(12, [15, 16], "Cenário 12 - Falcon diferentes tamanhos", "CeI")
-fig.write_image("cenario_12_CeI.png")
-fig = create_chart(12, [15, 16], "Cenário 12 - Falcon diferentes tamanhos", "IeB")
-fig.write_image("cenario_12_IeB.png")
-print("✓ Cenário 12")
-
-# CENÁRIO 13
-fig = create_chart(13, [17, 18], "Cenário 13 - SPHINCS diferentes tamanhos", "CeI")
-fig.write_image("cenario_13_CeI.png")
-fig = create_chart(13, [17, 18], "Cenário 13 - SPHINCS diferentes tamanhos", "IeB")
-fig.write_image("cenario_13_IeB.png")
-print("✓ Cenário 13")
-
-# CENÁRIO 14
-fig = create_chart(14, [19, 20, 21], "Cenário 14 - ML-DSA diferentes tamanhos", "CeI")
-fig.write_image("cenario_14_CeI.png")
-fig = create_chart(14, [19, 20, 21], "Cenário 14 - ML-DSA diferentes tamanhos", "IeB")
-fig.write_image("cenario_14_IeB.png")
-print("✓ Cenário 14")
-
-print("Todos os 28 gráficos gerados!")
+print("Concluído!")
